@@ -150,6 +150,70 @@
       color: #1e40af;
       border: 1px solid #bfdbfe;
     }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+      margin: 24px 0;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+      margin-bottom: 16px;
+    }
+
+    .logged-in-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+
+    .logged-in-bar .user-info {
+      font-size: 14px;
+      color: #065f46;
+      font-weight: 500;
+    }
+
+    .btn-logout {
+      background: none;
+      border: 1px solid #6ee7b7;
+      color: #065f46;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .btn-logout:hover {
+      background: #a7f3d0;
+    }
+
+    #login-form-section { display: block; }
+    #logged-in-section  { display: none;  }
   </style>
 </head>
 <body>
@@ -159,6 +223,36 @@
   </div>
 
   <div class="card">
+
+    <!-- Account section -->
+    <p class="section-label">Account</p>
+
+    <div id="logged-in-section">
+      <div class="logged-in-bar">
+        <span class="user-info">✓ Logged in as <strong id="display-name-label"></strong></span>
+        <button type="button" id="btn-logout" class="btn-logout">Log Out</button>
+      </div>
+    </div>
+
+    <div id="login-form-section">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input type="email" id="login-email" placeholder="you@alknz.io">
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+      <div class="button-row" style="margin-top: 0;">
+        <button type="button" id="btn-login" class="btn btn-primary">Log In</button>
+      </div>
+      <div id="login-status" class="status"></div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Connection settings -->
+    <p class="section-label">Connection</p>
     <form id="options-form">
       <div class="form-group">
         <label for="backend-url">Backend URL</label>
@@ -168,14 +262,8 @@
 
       <div class="form-group">
         <label for="api-key">API Key</label>
-        <input type="text" id="api-key" placeholder="Enter your API key">
-        <p class="hint">Bearer token for API authentication</p>
-      </div>
-
-      <div class="form-group">
-        <label for="captured-by">Captured By</label>
-        <input type="text" id="captured-by" placeholder="your.name@example.com">
-        <p class="hint">Your email or name to identify captures</p>
+        <input type="text" id="api-key" placeholder="Enter your API key (fallback if not logged in)">
+        <p class="hint">Used as fallback when not logged in</p>
       </div>
 
       <div class="button-row">

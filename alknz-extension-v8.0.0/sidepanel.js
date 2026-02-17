@@ -13,10 +13,9 @@ const translations = {
       subtitle: 'Investor Intelligence'
     },
     tabs: {
-      capture: 'Capture',
-      deepAi: 'Deep AI',
-      scraper: 'Scraper',
-      history: 'History'
+      capture: 'Research',
+      scraper: 'Batch',
+      history: 'Saved'
     },
     sections: {
       evidence: 'Evidence Fields',
@@ -108,7 +107,6 @@ const translations = {
       noSettings: 'Please configure settings first',
       selectText: 'Please select text first',
       noFields: 'No fields to map',
-      deepAiMerged: 'Deep AI merged into Capture'
     },
     options: {
       select: 'Select...',
@@ -142,10 +140,6 @@ const translations = {
       saveOrg: 'Save Org',
       uploadOrg: 'Upload Org',
       clearOrg: 'Clear Org',
-      startDeepSearch: 'Start Deep Search',
-      revealContact: 'Reveal Contact Info',
-      addToCapture: 'Add to Capture Form',
-      mergeIntoCapture: 'Merge into Capture',
       startScraper: 'Start Batch Scrape',
       close: 'Close',
       saveChanges: 'Save Changes'
@@ -153,7 +147,7 @@ const translations = {
     messages: {
       noSuggestions: 'No suggestions yet. Click "AI Auto-Fill" to extract fields.',
       noDrafts: 'No drafts saved yet',
-      noSearches: 'No searches yet. Use Deep AI to find contact information.',
+      noSearches: 'No searches yet. Use AI Enrichment to find contact information.',
       noFiltered: 'No investors match this filter'
     },
     table: {
@@ -164,14 +158,6 @@ const translations = {
       status: 'Status',
       created: 'Created',
       actions: 'Actions'
-    },
-    deepAi: {
-      searchPrompt: 'Search for a contact...',
-      searchHint: 'Enter name or LinkedIn URL below',
-      aiRunning: 'AI Agent Running...',
-      foundContact: 'Found Contact Information',
-      mergeHelper: 'Fills missing Capture fields using Deep AI (does not overwrite your edits).',
-      runSearchFirst: 'Run Deep Search first'
     },
     scraper: {
       info: 'Paste URLs to scrape for investor contacts (max 25 pages)',
@@ -254,10 +240,9 @@ const translations = {
       subtitle: 'استخبارات المستثمرين'
     },
     tabs: {
-      capture: 'التقاط',
-      deepAi: 'الذكاء العميق',
-      scraper: 'الكاشط',
-      history: 'السجل'
+      capture: 'بحث',
+      scraper: 'الدُفعة',
+      history: 'المحفوظات'
     },
     sections: {
       evidence: 'حقول الأدلة',
@@ -349,7 +334,6 @@ const translations = {
       selectText: 'يرجى تحديد نص أولاً',
       noFields: 'لا توجد حقول للتعيين',
       orgCleared: 'تم مسح المؤسسة',
-      deepAiMerged: 'تم دمج الذكاء العميق في الالتقاط'
     },
     options: {
       select: 'اختر...',
@@ -383,10 +367,6 @@ const translations = {
       saveOrg: 'حفظ المؤسسة',
       uploadOrg: 'رفع المؤسسة',
       clearOrg: 'مسح المؤسسة',
-      startDeepSearch: 'بدء البحث العميق',
-      revealContact: 'كشف معلومات الاتصال',
-      addToCapture: 'إضافة للالتقاط',
-      mergeIntoCapture: 'دمج في الالتقاط',
       startScraper: 'بدء الكشط المتعدد',
       close: 'إغلاق',
       saveChanges: 'حفظ التغييرات'
@@ -394,7 +374,7 @@ const translations = {
     messages: {
       noSuggestions: 'لا توجد اقتراحات بعد. انقر على "ملء تلقائي بالذكاء" لاستخراج الحقول.',
       noDrafts: 'لا توجد مسودات محفوظة بعد',
-      noSearches: 'لا توجد عمليات بحث بعد. استخدم الذكاء العميق للعثور على معلومات الاتصال.'
+      noSearches: 'لا توجد عمليات بحث بعد. استخدم إثراء الذكاء الاصطناعي للعثور على معلومات الاتصال.'
     },
     table: {
       name: 'الاسم',
@@ -404,14 +384,6 @@ const translations = {
       status: 'الحالة',
       created: 'تاريخ الإنشاء',
       actions: 'إجراءات'
-    },
-    deepAi: {
-      searchPrompt: 'ابحث عن جهة اتصال...',
-      searchHint: 'أدخل الاسم أو رابط لينكد إن أدناه',
-      aiRunning: 'وكيل الذكاء الاصطناعي يعمل...',
-      foundContact: 'تم العثور على معلومات الاتصال',
-      mergeHelper: 'يملأ الحقول الفارغة في الالتقاط من الذكاء العميق (لا يحل محل تعديلاتك).',
-      runSearchFirst: 'قم بتشغيل البحث العميق أولاً'
     },
     scraper: {
       info: 'الصق روابط المواقع لاستخراج بيانات المستثمرين (25 صفحة كحد أقصى)',
@@ -574,13 +546,529 @@ const state = {
     query: null,
     additional_urls: [],
     merged_into_form: false
-  }
+  },
+  // Mode controller
+  captureMode: 'person',          // 'person' | 'company' | 'bulk'
+  pageType: 'unknown',            // detected from content script
+  bulkTeamMembers: [],            // PersonStub[] from EXTRACT_TEAM_MEMBERS
+  bulkSelectedIndices: new Set(), // indices of checked stubs
+  bulkEnrichmentQueue: [],        // active enrichment jobs for selected people
+  _enrichmentFields: null         // fields returned by inline enrichment
 };
 
 function hasDeepAiData() {
   return state.deepAi.extracted !== null && Object.keys(state.deepAi.extracted).length > 0;
 }
 
+// ---------------------------------------------------------------------------
+// Mode Controller — switches the Capture tab between Person / Company / Bulk
+// ---------------------------------------------------------------------------
+
+const MODE_CONFIG = {
+  person:  { icon: '🧑', label: 'Person Mode',  showFooter: true },
+  company: { icon: '🏢', label: 'Company Mode', showFooter: true },
+  bulk:    { icon: '👥', label: 'Team Mode',    showFooter: false }
+};
+
+function setCaptureMode(mode) {
+  if (!MODE_CONFIG[mode]) mode = 'person';
+  state.captureMode = mode;
+
+  // Section visibility
+  const personSections = [
+    document.getElementById('section-person-details'),
+    document.getElementById('section-contact-relationship'),
+    document.getElementById('section-investment-focus'),
+    document.getElementById('section-enrichment')
+  ];
+  const companySection = document.getElementById('section-company-details');
+  const bulkSection    = document.getElementById('section-bulk-team');
+
+  personSections.forEach(el => { if (el) el.style.display = mode === 'person' ? '' : 'none'; });
+  if (companySection) companySection.style.display = mode === 'company' ? '' : 'none';
+  if (bulkSection)    bulkSection.style.display    = mode === 'bulk'    ? '' : 'none';
+
+  // Mode banner
+  const cfg = MODE_CONFIG[mode];
+  const iconEl  = document.getElementById('mode-detected-icon');
+  const textEl  = document.getElementById('mode-detected-text');
+  if (iconEl)  iconEl.textContent  = cfg.icon;
+  if (textEl)  textEl.textContent  = cfg.label;
+
+  // Update active button state
+  document.querySelectorAll('.mode-switch-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+
+  // Show/hide the footer upload/save buttons (they don't apply in bulk mode)
+  const footer = document.getElementById('capture-footer');
+  if (footer) footer.style.display = cfg.showFooter ? '' : 'none';
+}
+
+function applyPageTypeToMode(pageType) {
+  state.pageType = pageType || 'unknown';
+
+  // Show the mode banner whenever we have a detected type
+  const banner = document.getElementById('capture-mode-banner');
+  if (banner) banner.style.display = '';
+
+  if (pageType === 'team_page') {
+    setCaptureMode('bulk');
+    loadBulkTeamMembers();
+  } else if (pageType === 'company_profile') {
+    setCaptureMode('company');
+  } else {
+    setCaptureMode('person');
+  }
+}
+
+async function loadBulkTeamMembers() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+    const response = await chrome.tabs.sendMessage(tab.id, { type: 'EXTRACT_TEAM_MEMBERS' });
+    state.bulkTeamMembers     = response?.team_members || [];
+    state.bulkSelectedIndices = new Set();
+    renderBulkTeamList();
+  } catch (err) {
+    console.error('Error extracting team members:', err);
+  }
+}
+
+function renderBulkTeamList() {
+  const listEl   = document.getElementById('bulk-team-list');
+  const countEl  = document.getElementById('bulk-team-count');
+  const actionsEl = document.getElementById('bulk-team-actions');
+  if (!listEl) return;
+
+  countEl.textContent = state.bulkTeamMembers.length;
+
+  if (state.bulkTeamMembers.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center; color:#64748b; font-size:13px; padding:16px;">No team members detected on this page.<br>Try scrolling down to load more, then click Refresh.</div>';
+    if (actionsEl) actionsEl.style.display = 'none';
+    return;
+  }
+
+  listEl.innerHTML = state.bulkTeamMembers.map((person, idx) => `
+    <div class="bulk-person-row" data-index="${idx}">
+      <input type="checkbox" class="bulk-checkbox" data-index="${idx}">
+      ${person.profile_image_url
+        ? `<img class="bulk-avatar" src="${escapeHtml(person.profile_image_url)}" onerror="this.style.display='none'" alt="">`
+        : `<div class="bulk-avatar-placeholder">${escapeHtml((person.person_name || 'U').charAt(0).toUpperCase())}</div>`
+      }
+      <div class="bulk-person-info">
+        <div class="bulk-person-name">${escapeHtml(person.person_name || 'Unknown')}</div>
+        <div class="bulk-person-title">${escapeHtml(person.job_title || '')}</div>
+      </div>
+      ${person.linkedin_url
+        ? `<a class="bulk-linkedin-link" href="${escapeHtml(person.linkedin_url)}" target="_blank" title="Open LinkedIn">LI</a>`
+        : ''
+      }
+    </div>
+  `).join('');
+
+  // Wire checkboxes
+  listEl.querySelectorAll('.bulk-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const idx = parseInt(cb.dataset.index, 10);
+      if (cb.checked) state.bulkSelectedIndices.add(idx);
+      else            state.bulkSelectedIndices.delete(idx);
+      updateBulkSelectionCount();
+    });
+  });
+
+  if (actionsEl) actionsEl.style.display = 'flex';
+  updateBulkSelectionCount();
+}
+
+function updateBulkSelectionCount() {
+  const countEl = document.getElementById('bulk-selected-count');
+  if (countEl) countEl.textContent = state.bulkSelectedIndices.size;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function startBulkCaptureQueue() {
+  const selectedPeople = [...state.bulkSelectedIndices]
+    .map(i => state.bulkTeamMembers[i])
+    .filter(Boolean);
+
+  if (selectedPeople.length === 0) {
+    showToast('Please select at least one person first', 'info');
+    return;
+  }
+
+  const queueEl = document.getElementById('bulk-capture-queue');
+  if (!queueEl) return;
+  queueEl.style.display = 'block';
+
+  // Detect company context from current page URL / mode banner
+  const companyUrl = state.source_url && state.source_url.includes('linkedin.com/company')
+    ? state.source_url.replace(/\/people\/?.*/, '').replace(/\/$/, '')
+    : '';
+
+  state.bulkEnrichmentQueue = selectedPeople.map((person, i) => ({
+    ...person,
+    queue_index: i,
+    status: 'queued',   // queued | searching | done | error
+    enrichment: null
+  }));
+
+  renderBulkQueue();
+  runBulkEnrichmentQueue();
+}
+
+function renderBulkQueue() {
+  const queueEl = document.getElementById('bulk-capture-queue');
+  if (!queueEl) return;
+
+  queueEl.innerHTML = state.bulkEnrichmentQueue.map((job, i) => `
+    <div class="bulk-queue-card" id="bulk-queue-card-${i}">
+      <div class="bulk-queue-header">
+        <strong>${escapeHtml(job.person_name || 'Unknown')}</strong>
+        <span class="bulk-queue-title-text">${escapeHtml(job.job_title || '')}</span>
+      </div>
+      <div class="bulk-queue-status bulk-queue-status--${job.status}" id="bulk-queue-status-${i}">
+        ${renderQueueStatus(job)}
+      </div>
+      <div class="bulk-queue-actions" id="bulk-queue-actions-${i}" style="display: ${job.status === 'done' ? 'flex' : 'none'}; margin-top: 8px; gap: 6px;">
+        <button class="btn btn-small btn-ghost" onclick="bulkSkipPerson(${i})">Skip</button>
+        <button class="btn btn-small btn-ghost" onclick="bulkSaveDraftPerson(${i})">Save Draft</button>
+        <button class="btn btn-small btn-primary" onclick="bulkUploadPerson(${i})">Upload</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderQueueStatus(job) {
+  if (job.status === 'queued')    return '<span style="color:#94a3b8;">⏳ Queued</span>';
+  if (job.status === 'searching') return '<span style="color:#f59e0b;">🔍 Searching...</span>';
+  if (job.status === 'error')     return '<span style="color:#ef4444;">⚠ Could not find contact info</span>';
+  if (job.status === 'done') {
+    const e = job.enrichment;
+    const parts = [];
+    if (e?.email)   parts.push(`📧 ${escapeHtml(e.email)}`);
+    if (e?.phone)   parts.push(`📞 ${escapeHtml(e.phone)}`);
+    if (!parts.length) parts.push('No contact info found');
+    return `<span style="color:#10b981;">✓</span> ${parts.join(' · ')}`;
+  }
+  return '';
+}
+
+async function runBulkEnrichmentQueue() {
+  const settings = await getSettings();
+  if (!settings.backendUrl) {
+    showToast('Configure Backend URL in settings first', 'error');
+    return;
+  }
+
+  for (let i = 0; i < state.bulkEnrichmentQueue.length; i++) {
+    const job = state.bulkEnrichmentQueue[i];
+    if (job.status !== 'queued') continue;
+
+    // Update UI to searching
+    job.status = 'searching';
+    updateQueueCard(i);
+
+    try {
+      const response = await fetch(`${settings.backendUrl}/api/v1/enrichment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.apiKey}`
+        },
+        body: JSON.stringify({
+          name: job.person_name,
+          company: job.firm_name || null,
+          additional_urls: job.linkedin_url ? [job.linkedin_url] : []
+        })
+      }).catch(() => null);
+
+      if (response?.ok) {
+        const data = await response.json().catch(() => null);
+        job.enrichment = data?.data?.extracted || null;
+        job.status = 'done';
+      } else {
+        // Fallback: try old endpoint
+        const fallback = await fetch(`${settings.backendUrl}/api/deep-search`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+          body: JSON.stringify({ name: job.person_name, company: job.firm_name || null, additional_urls: [] })
+        }).catch(() => null);
+        if (fallback?.ok) {
+          const data = await fallback.json().catch(() => null);
+          job.enrichment = data?.data?.extracted || null;
+          job.status = 'done';
+        } else {
+          job.status = 'error';
+        }
+      }
+    } catch {
+      job.status = 'error';
+    }
+
+    updateQueueCard(i);
+
+    // 1-second delay between calls to avoid rate limiting
+    if (i < state.bulkEnrichmentQueue.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }
+}
+
+function updateQueueCard(i) {
+  const statusEl  = document.getElementById(`bulk-queue-status-${i}`);
+  const actionsEl = document.getElementById(`bulk-queue-actions-${i}`);
+  const job = state.bulkEnrichmentQueue[i];
+  if (!job) return;
+  if (statusEl)  statusEl.innerHTML = renderQueueStatus(job);
+  if (statusEl)  statusEl.className = `bulk-queue-status bulk-queue-status--${job.status}`;
+  if (actionsEl) actionsEl.style.display = job.status === 'done' ? 'flex' : 'none';
+}
+
+async function bulkUploadPerson(i) {
+  const job = state.bulkEnrichmentQueue[i];
+  if (!job) return;
+  const settings = await getSettings();
+  if (!settings.backendUrl) { showToast('Configure Backend URL first', 'error'); return; }
+
+  const payload = {
+    person_name:   job.person_name,
+    investor_name: job.person_name, // backward compat
+    job_title:     job.job_title,
+    linkedin_url:  job.linkedin_url || '',
+    email:         job.enrichment?.email || '',
+    phone:         job.enrichment?.phone || '',
+    firm_name:     job.firm_name || '',
+    firm_linkedin_url: job.linkedin_url?.includes('/company/') ? job.linkedin_url : '',
+    source_url:    job.source_url || state.source_url,
+    confidence:    'MEDIUM',
+    captured_by:   settings.capturedBy || '',
+    page_type:     'team_page'
+  };
+
+  try {
+    const res = await fetch(`${settings.backendUrl}/api/v1/people`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      showToast(`${job.person_name} uploaded!`, 'success');
+      const card = document.getElementById(`bulk-queue-card-${i}`);
+      if (card) card.style.opacity = '0.5';
+    } else {
+      showToast('Upload failed', 'error');
+    }
+  } catch {
+    showToast('Upload failed', 'error');
+  }
+}
+
+function bulkSkipPerson(i) {
+  const card = document.getElementById(`bulk-queue-card-${i}`);
+  if (card) card.style.display = 'none';
+}
+
+async function bulkSaveDraftPerson(i) {
+  const job = state.bulkEnrichmentQueue[i];
+  if (!job) return;
+  const addressBook = await getAddressBook();
+  const draft = {
+    local_id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    capture_type: 'NEW_INVESTOR',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    status: 'LOCAL_DRAFT',
+    source_url: job.source_url || state.source_url,
+    source_title: state.source_title,
+    confidence: 'MEDIUM',
+    payload: {
+      investor_name: job.person_name,
+      person_name: job.person_name,
+      job_title: job.job_title || '',
+      linkedin_url: job.linkedin_url || '',
+      emails: job.enrichment?.email ? [job.enrichment.email] : [],
+      phones: job.enrichment?.phone ? [job.enrichment.phone] : [],
+      firm_name: job.firm_name || ''
+    }
+  };
+  addressBook.push(draft);
+  await saveAddressBook(addressBook);
+  showToast(`${job.person_name} saved as draft`, 'success');
+  await loadAddressBook();
+}
+
+// ---------------------------------------------------------------------------
+// Inline Enrichment Panel (Phase 5) — person mode only, replaces Deep AI tab
+// ---------------------------------------------------------------------------
+
+async function startInlineEnrichment() {
+  const name     = (document.getElementById('investor-name')?.value || '').trim();
+  const firm     = (document.getElementById('firm-name')?.value || '').trim();
+  const linkedin = (document.getElementById('linkedin-url')?.value || '').trim();
+
+  if (!name && !firm && !linkedin) {
+    showToast('Fill in at least a name or LinkedIn URL first', 'warning');
+    return;
+  }
+
+  // Expand the collapsible panel if collapsed
+  const panelContent = document.getElementById('enrichment-panel-content');
+  if (panelContent?.classList.contains('collapsed')) {
+    panelContent.classList.remove('collapsed');
+    const icon = document.getElementById('enrichment-toggle-icon');
+    if (icon) icon.textContent = '▼';
+  }
+
+  const statusEl = document.getElementById('enrichment-status');
+  const cardEl   = document.getElementById('enrichment-result-card');
+  if (statusEl) statusEl.style.display = '';
+  if (cardEl)   cardEl.style.display   = 'none';
+
+  const query = [name, firm].filter(Boolean).join(' ') || linkedin;
+
+  try {
+    const settings = await getSettings();
+    const apiBase  = settings.apiEndpoint || settings.backendUrl || '';
+
+    let result = null;
+    const tryV1 = async () => {
+      const res = await fetch(`${apiBase}/api/v1/enrichment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, linkedin_url: linkedin, name, firm })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    };
+    const tryLegacy = async () => {
+      const res = await fetch(`${apiBase}/api/deep-search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, linkedin_url: linkedin, name, firm })
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    };
+
+    try { result = await tryV1(); } catch { result = await tryLegacy(); }
+
+    if (statusEl) statusEl.style.display = 'none';
+    renderEnrichmentResultCard(result);
+  } catch (err) {
+    if (statusEl) statusEl.style.display = 'none';
+    showToast('Enrichment failed: ' + err.message, 'error');
+  }
+}
+
+function renderEnrichmentResultCard(result) {
+  const cardEl   = document.getElementById('enrichment-result-card');
+  const fieldsEl = document.getElementById('enrichment-fields-list');
+  if (!cardEl || !fieldsEl) return;
+
+  // Normalise result shape — handle both v1 and legacy response formats
+  const emails = result.emails || (result.email ? [result.email] : []);
+  const phones = result.phones || (result.phone ? [result.phone] : []);
+
+  const fields = [];
+  emails.forEach((e, i) => {
+    if (e) fields.push({ label: i === 0 ? 'Email' : `Email ${i + 1}`, value: e, key: `email_${i}` });
+  });
+  phones.forEach((p, i) => {
+    if (p) fields.push({ label: i === 0 ? 'Phone' : `Phone ${i + 1}`, value: p, key: `phone_${i}` });
+  });
+  if (result.website)          fields.push({ label: 'Website',    value: result.website,          key: 'website' });
+  if (result.location_city)    fields.push({ label: 'City',       value: result.location_city,    key: 'city' });
+  if (result.location_country) fields.push({ label: 'Country',    value: result.location_country, key: 'country' });
+  if (result.twitter_url)      fields.push({ label: 'Twitter/X',  value: result.twitter_url,      key: 'notes_twitter' });
+
+  if (!fields.length) {
+    fieldsEl.innerHTML = '<p style="font-size:12px;color:#64748b;text-align:center;padding:8px;">No additional data found.</p>';
+    cardEl.style.display = '';
+    return;
+  }
+
+  // Store on state for "Apply All"
+  state._enrichmentFields = fields;
+
+  fieldsEl.innerHTML = fields.map((f, i) => `
+    <div class="enrichment-field-row" data-field-idx="${i}">
+      <span class="enrichment-field-label">${escapeHtml(f.label)}</span>
+      <span class="enrichment-field-value">${escapeHtml(f.value)}</span>
+      <button class="enrichment-apply-btn" data-field-idx="${i}" title="Apply to form">✓ Apply</button>
+      <button class="enrichment-dismiss-btn" data-field-idx="${i}" title="Dismiss">✕</button>
+    </div>
+  `).join('');
+
+  cardEl.style.display = '';
+}
+
+// Maps enrichment field key prefix → target form field ID(s)
+function applyEnrichmentFieldByKey(key, value) {
+  if (key.startsWith('email_')) {
+    // Fill first empty email slot
+    for (let i = 1; i <= 5; i++) {
+      const el = document.getElementById(`email-${i}`);
+      if (el && !el.value.trim()) { el.value = value; return; }
+    }
+    return;
+  }
+  if (key.startsWith('phone_')) {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById(`phone-${i}`);
+      if (el && !el.value.trim()) { el.value = value; return; }
+    }
+    return;
+  }
+  const simpleMap = { website: 'website', city: 'location-city', country: 'location-country' };
+  if (simpleMap[key]) {
+    const el = document.getElementById(simpleMap[key]);
+    if (el && !el.value.trim()) el.value = value;
+    return;
+  }
+  if (key === 'notes_twitter') {
+    // Append to notes field
+    const notesEl = document.getElementById('notes');
+    if (notesEl) {
+      const sep = notesEl.value.trim() ? '\n' : '';
+      notesEl.value += sep + 'Twitter/X: ' + value;
+    }
+  }
+}
+
+function handleEnrichmentApply(idx) {
+  const fields = state._enrichmentFields;
+  if (!fields || !fields[idx]) return;
+  applyEnrichmentFieldByKey(fields[idx].key, fields[idx].value);
+  const row = document.querySelector(`.enrichment-field-row[data-field-idx="${idx}"]`);
+  if (row) {
+    row.style.opacity = '0.45';
+    const applyBtn = row.querySelector('.enrichment-apply-btn');
+    if (applyBtn) { applyBtn.textContent = '✓ Applied'; applyBtn.disabled = true; }
+  }
+}
+
+function handleEnrichmentDismiss(idx) {
+  const row = document.querySelector(`.enrichment-field-row[data-field-idx="${idx}"]`);
+  if (row) row.remove();
+}
+
+function applyAllEnrichmentFields() {
+  const fields = state._enrichmentFields;
+  if (!fields) return;
+  fields.forEach((_, i) => handleEnrichmentApply(i));
+}
+
+// ---------------------------------------------------------------------------
 // Shared helpers for non-destructive form filling (used by Deep AI merge and scraper autofill)
 function isEmptyValue(v) {
   if (v === null || v === undefined) return true;
@@ -738,17 +1226,64 @@ async function getSettings() {
 async function initSidePanel() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     if (tab) {
-      state.source_url = tab.url || '';
+      state.source_url   = tab.url || '';
       state.source_title = tab.title || '';
-      
-      document.getElementById('source-url').value = state.source_url;
+
+      document.getElementById('source-url').value   = state.source_url;
       document.getElementById('source-title').value = state.source_title;
+
+      // Detect page type and auto-switch capture mode
+      if (tab.id) {
+        try {
+          const ctx = await chrome.tabs.sendMessage(tab.id, { type: 'GET_PAGE_CONTEXT' });
+          if (ctx?.page_type) {
+            applyPageTypeToMode(ctx.page_type);
+            // Smart URL suggestion for Batch tab: pre-fill with detected company URL
+            if (ctx.page_type === 'company_profile' || ctx.page_type === 'team_page') {
+              const scraperUrlsEl = document.getElementById('scraper-urls');
+              if (scraperUrlsEl && !scraperUrlsEl.value.trim()) {
+                const companyUrl = (tab.url || '').replace(/\/people\/?.*/, '').replace(/\/$/, '');
+                if (companyUrl) scraperUrlsEl.value = companyUrl;
+              }
+            }
+            // Pre-fill company form with direct DOM extraction if on company page
+            if (ctx.page_type === 'company_profile' && ctx.suggested_fields) {
+              setFirmFormData({
+                org_name:     ctx.suggested_fields.org_name,
+                website:      ctx.suggested_fields.website,
+                linkedin_url: ctx.suggested_fields.linkedin_url,
+                hq_city:      ctx.suggested_fields.hq_city,
+                hq_country:   ctx.suggested_fields.hq_country,
+                description:  ctx.suggested_fields.description
+              });
+            }
+            // Pre-fill person form with direct DOM extraction if on person page
+            if ((ctx.page_type === 'person_profile' || ctx.page_type === 'unknown') && ctx.suggested_fields) {
+              const sf = ctx.suggested_fields;
+              setFormData({
+                investor_name: sf.person_name || sf.investor_name,
+                job_title:     sf.job_title,
+                firm_name:     sf.firm_name,
+                linkedin_url:  sf.linkedin_url,
+                location_city: sf.location_city,
+                location_country: sf.location_country,
+                website:       sf.website,
+                emails:        sf.email ? [sf.email] : [],
+                phones:        sf.phone ? [sf.phone] : []
+              });
+            }
+          }
+        } catch {
+          // Content script not injected yet (e.g., chrome:// pages) — default to person mode
+          setCaptureMode('person');
+        }
+      }
     }
   } catch (error) {
     console.error('Error getting active tab:', error);
-    showToast('Could not get page information', 'error');
+    setCaptureMode('person');
   }
 
   await loadAddressBook();
@@ -825,19 +1360,27 @@ async function captureFromPage() {
       visible_text: snapshot.visible_text || '',
       selected_text: snapshot.selected_text || '',
       emails_found: snapshot.emails || [],
-      phones_found: snapshot.phones || []
+      phones_found: snapshot.phones || [],
+      page_type: state.pageType
     };
 
     showToast('Extracting fields...', 'info');
 
-    const response = await fetch(`${settings.backendUrl}/api/extract`, {
+    // Try new v1 endpoint, fall back to legacy
+    const extractEndpoint = `${settings.backendUrl}/api/v1/extract`;
+    const fallbackExtract = `${settings.backendUrl}/api/extract`;
+    let response = await fetch(extractEndpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${settings.apiKey}`
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
       body: JSON.stringify(requestBody)
-    });
+    }).catch(() => null);
+    if (!response || response.status === 404) {
+      response = await fetch(fallbackExtract, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+        body: JSON.stringify(requestBody)
+      });
+    }
 
     const result = await response.json();
 
@@ -900,7 +1443,7 @@ function getFormData() {
   
   return {
     capture_type: 'NEW_INVESTOR',
-    entity_type: document.getElementById('entity-type').value,
+    entity_type: document.getElementById('entity-type')?.value || 'investor',
     source_url: state.source_url,
     source_title: state.source_title,
     selected_text: document.getElementById('selected-text').value,
@@ -933,10 +1476,10 @@ function getFormData() {
 function setFormData(data) {
   // Non-destructive autofill: only fills empty fields, never overwrites user edits
   
-  // Set entity type (only if empty/default)
+  // Set entity type (only if empty/default) — graceful if element removed
   if (data.entity_type) {
     const entityEl = document.getElementById('entity-type');
-    if (!entityEl.value || entityEl.value === 'investor') {
+    if (entityEl && (!entityEl.value || entityEl.value === 'investor')) {
       entityEl.value = data.entity_type;
     }
   }
@@ -1004,7 +1547,8 @@ function setFormData(data) {
 }
 
 function clearForm() {
-  document.getElementById('entity-type').value = 'investor';
+  const entityEl = document.getElementById('entity-type');
+  if (entityEl) entityEl.value = 'investor';
   document.getElementById('investor-name').value = '';
   document.getElementById('investor-type').value = '';
   document.getElementById('job-title').value = '';
@@ -1243,48 +1787,190 @@ async function saveDraftToServer(profile, sourceUrl) {
   }
 }
 
-async function uploadCapture() {
+// ---------------------------------------------------------------------------
+// Company Mode — form data + upload
+// ---------------------------------------------------------------------------
+
+function getFirmFormData() {
+  const orgEmails = [
+    document.getElementById('org-email-1')?.value || '',
+    document.getElementById('org-email-2')?.value || '',
+    document.getElementById('org-email-3')?.value || '',
+    document.getElementById('org-email-4')?.value || '',
+    document.getElementById('org-email-5')?.value || ''
+  ].filter(e => e.trim());
+
+  const orgPhones = [
+    document.getElementById('org-phone-1')?.value || '',
+    document.getElementById('org-phone-2')?.value || '',
+    document.getElementById('org-phone-3')?.value || ''
+  ].filter(p => p.trim());
+
+  const orgSectors = (document.getElementById('org-investment-sectors')?.value || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const orgStages = (document.getElementById('org-investment-stages')?.value || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const orgGeo = (document.getElementById('org-geographic-focus')?.value || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+
+  return {
+    org_name:             document.getElementById('org-name')?.value?.trim() || '',
+    org_type:             document.getElementById('org-type')?.value?.trim() || '',
+    website:              document.getElementById('org-website')?.value?.trim() || '',
+    linkedin_url:         document.getElementById('org-linkedin-url')?.value?.trim() || '',
+    emails:               orgEmails,
+    phones:               orgPhones,
+    hq_city:              document.getElementById('org-hq-city')?.value?.trim() || '',
+    hq_country:           document.getElementById('org-hq-country')?.value?.trim() || '',
+    description:          document.getElementById('org-description')?.value?.trim() || '',
+    investment_sectors:   orgSectors,
+    investment_stages:    orgStages,
+    check_size_min:       document.getElementById('org-check-size-min')?.value?.trim() || '',
+    check_size_max:       document.getElementById('org-check-size-max')?.value?.trim() || '',
+    geographic_focus:     orgGeo,
+    notes:                document.getElementById('org-notes')?.value?.trim() || ''
+  };
+}
+
+function setFirmFormData(data) {
+  if (!data) return;
+  const set = (id, val) => {
+    if (!val) return;
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = val;
+  };
+  set('org-name', data.org_name);
+  set('org-type', data.org_type);
+  set('org-website', data.website || data.org_website);
+  set('org-linkedin-url', data.linkedin_url || data.org_linkedin_url);
+  set('org-hq-city', data.hq_city);
+  set('org-hq-country', data.hq_country);
+  set('org-description', data.description);
+  set('org-check-size-min', data.check_size_min);
+  set('org-check-size-max', data.check_size_max);
+  if (data.investment_sectors) {
+    set('org-investment-sectors', Array.isArray(data.investment_sectors) ? data.investment_sectors.join(', ') : data.investment_sectors);
+  }
+  if (data.investment_stages) {
+    set('org-investment-stages', Array.isArray(data.investment_stages) ? data.investment_stages.join(', ') : data.investment_stages);
+  }
+  if (data.geographic_focus) {
+    set('org-geographic-focus', Array.isArray(data.geographic_focus) ? data.geographic_focus.join(', ') : data.geographic_focus);
+  }
+  // Emails
+  if (data.emails?.length) {
+    data.emails.slice(0, 5).forEach((email, i) => {
+      const el = document.getElementById(`org-email-${i + 1}`);
+      if (el && !el.value) el.value = email;
+    });
+  }
+  // Phones
+  if (data.phones?.length) {
+    data.phones.slice(0, 3).forEach((phone, i) => {
+      const el = document.getElementById(`org-phone-${i + 1}`);
+      if (el && !el.value) el.value = phone;
+    });
+  }
+}
+
+async function uploadFirm() {
   const settings = await getSettings();
-  
   if (!settings.backendUrl) {
     showToast('Please configure Backend URL in settings', 'error');
     return;
   }
-  
+
+  const firmData = getFirmFormData();
+  if (!firmData.org_name) {
+    showToast('Please enter an organization name', 'error');
+    return;
+  }
+
+  const requestBody = {
+    org_name:           firmData.org_name,
+    org_type:           firmData.org_type,
+    website:            firmData.website,
+    linkedin_url:       firmData.linkedin_url,
+    emails:             firmData.emails,
+    phones:             firmData.phones,
+    hq_city:            firmData.hq_city,
+    hq_country:         firmData.hq_country,
+    description:        firmData.description,
+    investment_sectors: firmData.investment_sectors,
+    investment_stages:  firmData.investment_stages,
+    check_size_min:     firmData.check_size_min,
+    check_size_max:     firmData.check_size_max,
+    geographic_focus:   firmData.geographic_focus,
+    notes:              firmData.notes,
+    source_urls:        state.source_url ? [state.source_url] : [],
+    captured_by:        settings.capturedBy || '',
+    captured_at:        new Date().toISOString()
+  };
+
+  try {
+    // Try new v1 endpoint first, fall back to legacy
+    const endpoint = `${settings.backendUrl}/api/v1/companies`;
+    const fallbackEndpoint = `${settings.backendUrl}/api/organizations`;
+
+    let response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+      body: JSON.stringify(requestBody)
+    }).catch(() => null);
+
+    if (!response || response.status === 404) {
+      response = await fetch(fallbackEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+        body: JSON.stringify(requestBody)
+      });
+    }
+
+    if (response.ok) {
+      showToast(`${firmData.org_name} uploaded to ALKNZ Portal`, 'success');
+    } else {
+      const result = await response.json().catch(() => ({}));
+      showToast(`Upload failed: ${result.error || 'Unknown error'}`, 'error');
+    }
+  } catch (error) {
+    showToast(`Upload failed: ${error.message}`, 'error');
+  }
+}
+
+async function uploadCapture() {
+  // Route based on current capture mode
+  if (state.captureMode === 'company') {
+    await uploadFirm();
+    return;
+  }
+
+  const settings = await getSettings();
+
+  if (!settings.backendUrl) {
+    showToast('Please configure Backend URL in settings', 'error');
+    return;
+  }
+
   if (!settings.capturedBy) {
     showToast('Please configure your email in settings', 'error');
     return;
   }
 
   const formData = getFormData();
-  
+
   if (!formData.investor_name.trim()) {
     showToast('Please enter a name', 'error');
     return;
   }
 
-  // Route to different endpoint based on entity type
-  const isOrganization = formData.entity_type === 'organization';
+  // Legacy entity_type check for backward compat (before mode controller existed)
+  const isOrganization = false; // now handled by mode controller above
   
   let endpoint, requestBody;
-  
-  if (isOrganization) {
-    // Upload as Organization
-    endpoint = `${settings.backendUrl}/api/organizations`;
-    requestBody = {
-      org_name: formData.investor_name,
-      website: formData.website,
-      linkedin_url: formData.linkedin_url,
-      emails: formData.emails,
-      phones: formData.phones,
-      hq_city: formData.location_city,
-      hq_country: formData.location_country,
-      description: formData.notes,
-      source_urls: formData.source_url ? [formData.source_url] : []
-    };
-  } else {
-    // Upload as Investor (existing logic)
-    endpoint = `${settings.backendUrl}/api/capture`;
+
+  {
+    // Upload as Person (new v1 endpoint with legacy fallback)
+    endpoint = `${settings.backendUrl}/api/v1/people`;
     const payload = buildPayload(formData);
     
     // Include Deep AI enrichment if available
@@ -1340,23 +2026,30 @@ async function uploadCapture() {
       selected_text: formData.selected_text,
       captured_by: settings.capturedBy,
       confidence: formData.confidence,
+      page_type: state.pageType,
       payload
     };
   }
 
   try {
-    const response = await fetch(endpoint, {
+    // Try new v1 endpoint first; if not found (404), fall back to legacy /api/capture
+    let response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${settings.apiKey}`
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
       body: JSON.stringify(requestBody)
-    });
+    }).catch(() => null);
 
-    const result = await response.json();
+    if (!response || response.status === 404) {
+      response = await fetch(`${settings.backendUrl}/api/capture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` },
+        body: JSON.stringify(requestBody)
+      });
+    }
 
-    if (response.ok && result.success) {
+    const result = await response.json().catch(() => ({}));
+
+    if (response.ok && (result.success || result.id || result.action)) {
       if (state.editing_local_id) {
         const drafts = await getAddressBook();
         const index = drafts.findIndex(d => d.local_id === state.editing_local_id);
@@ -1367,9 +2060,7 @@ async function uploadCapture() {
           await loadAddressBook();
         }
       }
-      
-      const entityLabel = isOrganization ? 'Organization' : 'Investor';
-      showToast(`${entityLabel} uploaded to ALKNZ Portal`, 'success');
+      showToast('Investor uploaded to ALKNZ Portal', 'success');
       state.editing_local_id = null;
     } else {
       showToast(`Upload failed: ${result.error || 'Unknown error'}`, 'error');
@@ -1465,14 +2156,18 @@ async function uploadAcceptedCaptures() {
           org_id: scraperState.uploadedOrgId || null
         };
         
-        const response = await fetch(`${settings.backendUrl}/api/investors`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${settings.apiKey}`
-          },
-          body: JSON.stringify(investorPayload)
-        });
+        // Try v1 endpoint first; fall back to legacy
+        const invHeaders = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` };
+        let response = await fetch(`${settings.backendUrl}/api/v1/people`, {
+          method: 'POST', headers: invHeaders, body: JSON.stringify({ ...investorPayload,
+            person_name: investorPayload.investor_name, emails: investorPayload.email ? [investorPayload.email] : [],
+            phones: investorPayload.phone ? [investorPayload.phone] : [] })
+        }).catch(() => null);
+        if (!response || response.status === 404) {
+          response = await fetch(`${settings.backendUrl}/api/investors`, {
+            method: 'POST', headers: invHeaders, body: JSON.stringify(investorPayload)
+          });
+        }
         
         if (response.ok) {
           inv.uploaded = true;
@@ -2519,26 +3214,17 @@ function renderSearchHistory() {
       const index = parseInt(item.dataset.index);
       const historyItem = deepSearchState.history[index];
       if (historyItem) {
-        deepSearchState.currentResult = historyItem;
-        
-        document.getElementById('deep-profile-name').textContent = historyItem.name;
-        document.getElementById('deep-profile-title').textContent = historyItem.title;
-        document.getElementById('deep-profile-company').textContent = historyItem.company;
-        document.getElementById('result-email').textContent = historyItem.email;
-        document.getElementById('result-phone').textContent = historyItem.phone;
-        document.getElementById('result-linkedin').textContent = historyItem.linkedin;
-        
-        document.querySelectorAll('.result-value').forEach(el => {
-          el.classList.remove('blurred');
-          el.classList.add('revealed');
+        // Load into Research tab's person form
+        setFormData({
+          investor_name: historyItem.name,
+          job_title:     historyItem.title || '',
+          firm_name:     historyItem.company || '',
+          linkedin_url:  historyItem.linkedin || '',
+          emails:        historyItem.email ? [historyItem.email] : [],
+          phones:        historyItem.phone ? [historyItem.phone] : []
         });
-        
-        document.getElementById('deep-search-terminal').style.display = 'none';
-        document.getElementById('deep-search-results').style.display = 'block';
-        document.getElementById('btn-reveal-contact').style.display = 'none';
-        document.getElementById('btn-add-to-capture').style.display = 'flex';
-        
-        switchTab('deep-ai');
+        switchTab('capture');
+        showToast(`Loaded: ${historyItem.name}`, 'success');
       }
     });
   });
@@ -3346,17 +4032,17 @@ async function startBatchScraper() {
   addScraperLog(logsContainer, `> ${t('scraper.initializing')}`, 'info', progressBar, 15);
   
   try {
-    const response = await fetch(`${settings.backendUrl}/api/batch-scrape`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${settings.apiKey}`
-      },
-      body: JSON.stringify({
-        urls: urls,
-        focus: focus
-      })
-    });
+    // Try v1 endpoint first; fall back to legacy
+    const scrapeBody = JSON.stringify({ urls: urls, focus: focus });
+    const scrapeHeaders = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.apiKey}` };
+    let response = await fetch(`${settings.backendUrl}/api/v1/scrape`, {
+      method: 'POST', headers: scrapeHeaders, body: scrapeBody
+    }).catch(() => null);
+    if (!response || response.status === 404) {
+      response = await fetch(`${settings.backendUrl}/api/batch-scrape`, {
+        method: 'POST', headers: scrapeHeaders, body: scrapeBody
+      });
+    }
     
     addScraperLog(logsContainer, `> ${t('scraper.crawlingPages')}`, 'info', progressBar, 40);
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -3762,49 +4448,89 @@ function renderScraperResults() {
   }
   
   container.innerHTML = filtered.map((inv) => {
-    const initial = (inv.name || 'U').charAt(0).toUpperCase();
-    const emailIcon = inv.email ? `<div class="investor-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>${escapeHtml(inv.email)}</div>` : '';
-    const phoneIcon = inv.phone ? `<div class="investor-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72"></path></svg>${escapeHtml(inv.phone)}</div>` : '';
-    const linkedinIcon = inv.linkedin ? `<div class="investor-detail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>LinkedIn</div>` : '';
-    const statusBadge = `<span class="status-badge ${inv.review_status}">${t('filters.' + inv.review_status)}</span>`;
-    const entityType = inv.entity_type || 'investor';
-    const entityKey = entityType === 'team_member' ? 'teamMember' : entityType;
-    const entityBadge = `<span class="entity-badge ${entityType}">${t('entityTypes.' + entityKey)}</span>`;
+    const initial    = (inv.name || 'U').charAt(0).toUpperCase();
     const isSelected = scraperState.selectedIndices.has(inv._index);
-    
+
+    // Email indicator
+    let emailIndicator = '<span class="email-indicator none">—</span>';
+    if (inv.email) {
+      const isConfirmed = inv.email_confidence === 'HIGH' || inv.email_status === 'verified';
+      emailIndicator = isConfirmed
+        ? `<span class="email-indicator found">📧 found</span>`
+        : `<span class="email-indicator predicted">📧 predicted</span>`;
+    } else if ((inv.predicted_emails || []).length > 0) {
+      emailIndicator = '<span class="email-indicator predicted">📧 predicted</span>';
+    }
+
+    const statusBadge = `<span class="status-badge ${inv.review_status}">${t('filters.' + inv.review_status)}</span>`;
+
+    // Expanded details (shown on toggle)
+    const emailHtml   = inv.email     ? `<div class="batch-detail-row"><span class="batch-detail-label">Email</span><span>${escapeHtml(inv.email)}</span></div>` : '';
+    const phoneHtml   = inv.phone     ? `<div class="batch-detail-row"><span class="batch-detail-label">Phone</span><span>${escapeHtml(inv.phone)}</span></div>` : '';
+    const linkedinHtml = inv.linkedin ? `<div class="batch-detail-row"><span class="batch-detail-label">LinkedIn</span><a href="${escapeHtml(inv.linkedin)}" target="_blank" rel="noopener" style="color:#60a5fa;">Profile</a></div>` : '';
+    const sourceHtml  = inv.source_url ? `<div class="batch-detail-row"><span class="batch-detail-label">Source</span><span style="word-break:break-all;font-size:10px;">${escapeHtml(inv.source_url)}</span></div>` : '';
+
     return `
-      <div class="investor-card status-${inv.review_status}${isSelected ? ' selected' : ''}" data-index="${inv._index}">
-        <input type="checkbox" class="investor-checkbox" ${isSelected ? 'checked' : ''}>
-        <div class="investor-header">
-          <div class="investor-avatar">${initial}</div>
-          <div class="investor-info">
-            <div class="investor-name">${escapeHtml(inv.name || 'Unknown')} ${entityBadge} ${statusBadge}</div>
-            <div class="investor-title">${escapeHtml(inv.job_title || '')}</div>
-            <div class="investor-company">${escapeHtml(inv.firm_name || '')}</div>
+      <div class="batch-result-row status-${inv.review_status}${isSelected ? ' selected' : ''}" data-index="${inv._index}">
+        <div class="batch-row-main">
+          <input type="checkbox" class="investor-checkbox" ${isSelected ? 'checked' : ''}>
+          <div class="batch-row-avatar">${initial}</div>
+          <div class="batch-row-info">
+            <span class="batch-row-name">${escapeHtml(inv.name || 'Unknown')}</span>
+            <span class="batch-row-title">${escapeHtml(inv.job_title || inv.firm_name || '')}</span>
+          </div>
+          <div class="batch-row-meta">
+            ${emailIndicator}
+            ${statusBadge}
+          </div>
+          <button class="batch-row-expand" title="Expand" aria-expanded="false">▼</button>
+        </div>
+        <div class="batch-row-details" style="display:none;">
+          ${emailHtml}${phoneHtml}${linkedinHtml}${sourceHtml}
+          <div class="batch-row-actions">
+            <button class="btn btn-small btn-ghost batch-edit-btn">Edit</button>
+            <button class="btn btn-small btn-success batch-accept-btn">Accept</button>
+            <button class="btn btn-small btn-danger batch-reject-btn">Reject</button>
           </div>
         </div>
-        <div class="investor-details">
-          ${emailIcon}
-          ${phoneIcon}
-          ${linkedinIcon}
-        </div>
-        ${inv.source_url ? `<div class="investor-source">Source: ${escapeHtml(inv.source_url)}</div>` : ''}
       </div>
     `;
   }).join('');
-  
-  container.querySelectorAll('.investor-card').forEach(card => {
-    const checkbox = card.querySelector('.investor-checkbox');
-    const index = parseInt(card.dataset.index);
-    
+
+  container.querySelectorAll('.batch-result-row').forEach(row => {
+    const checkbox  = row.querySelector('.investor-checkbox');
+    const expandBtn = row.querySelector('.batch-row-expand');
+    const details   = row.querySelector('.batch-row-details');
+    const index     = parseInt(row.dataset.index);
+
     checkbox.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleSelection(index, checkbox.checked);
     });
-    
-    card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('investor-checkbox')) return;
+
+    expandBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = details.style.display !== 'none';
+      details.style.display = isOpen ? 'none' : '';
+      expandBtn.textContent = isOpen ? '▼' : '▲';
+      expandBtn.setAttribute('aria-expanded', String(!isOpen));
+    });
+
+    row.querySelector('.batch-edit-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
       onCardClick(index);
+    });
+    row.querySelector('.batch-accept-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      scraperState.foundInvestors[index].review_status = 'accepted';
+      renderScraperResults();
+      renderAcceptedCaptures();
+    });
+    row.querySelector('.batch-reject-btn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      scraperState.foundInvestors[index].review_status = 'rejected';
+      renderScraperResults();
+      renderAcceptedCaptures();
     });
   });
   
@@ -3939,21 +4665,18 @@ function addScrapedInvestorToCapture(investor) {
 
 function loadOrganizationToForm(org) {
   if (!org) return;
-  
-  setFormData({
-    entity_type: 'organization',
-    investor_name: org.org_name || org.company_name || '',
-    firm_name: org.org_name || org.company_name || '',
-    investor_type: '',
-    job_title: '',
+
+  // Switch to Company Mode and populate the firm form
+  setCaptureMode('company');
+  setFirmFormData({
+    org_name:     org.org_name || org.company_name || '',
+    website:      org.website || '',
     linkedin_url: org.linkedin_url || '',
-    location_city: org.hq_city || '',
-    location_country: org.hq_country || '',
-    website: org.website || '',
-    emails: org.emails || [],
-    phones: org.phones || [],
-    notes: org.description || '',
-    source_url: (org.source_urls && org.source_urls[0]) || ''
+    hq_city:      org.hq_city || '',
+    hq_country:   org.hq_country || '',
+    emails:       org.emails || [],
+    phones:       org.phones || [],
+    description:  org.description || ''
   });
   
   switchTab('capture');
@@ -3974,27 +4697,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   const langToggle = document.getElementById('btn-lang-toggle');
   if (langToggle) langToggle.addEventListener('click', toggleLanguage);
-
-  const btnDeepSearch = document.getElementById('btn-deep-search');
-  const btnRevealContact = document.getElementById('btn-reveal-contact');
-  const btnAddToCapture = document.getElementById('btn-add-to-capture');
-  
-  if (btnDeepSearch) btnDeepSearch.addEventListener('click', startDeepSearch);
-  if (btnRevealContact) btnRevealContact.addEventListener('click', revealContactInfo);
-  if (btnAddToCapture) btnAddToCapture.addEventListener('click', addToCapture);
-
-  const btnMergeDeepAi = document.getElementById('btn-merge-deepai-to-capture');
-  if (btnMergeDeepAi) {
-    btnMergeDeepAi.addEventListener('click', () => {
-      if (!hasDeepAiData()) {
-        showToast(t('deepAi.runSearchFirst') || 'Run Deep Search first', 'error');
-        return;
-      }
-      mergeDeepAiIntoCaptureForm(state.deepAi.extracted);
-      showToast(t('toasts.deepAiMerged') || 'Deep AI merged into Capture', 'success');
-      switchTab('capture');
-    });
-  }
 
   const btnStartScraper = document.getElementById('btn-start-scraper');
   const scraperUrlsTextarea = document.getElementById('scraper-urls');
@@ -4065,4 +4767,91 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('address-book-toggle').addEventListener('click', toggleAddressBook);
   document.getElementById('suggestions-toggle').addEventListener('click', toggleSuggestions);
+
+  // Collapsible form sections — Contact & Relationship, Investment Focus
+  ['contact-relationship', 'investment-focus'].forEach(key => {
+    const toggle = document.getElementById(`toggle-${key}`);
+    const content = document.getElementById(`content-${key}`);
+    const icon = toggle?.querySelector('.section-toggle-icon');
+    if (toggle && content) {
+      toggle.addEventListener('click', () => {
+        const isCollapsed = content.classList.toggle('collapsed');
+        if (icon) icon.classList.toggle('open', !isCollapsed);
+      });
+    }
+  });
+
+  // Mode banner — manual override buttons
+  document.querySelectorAll('.mode-switch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.mode;
+      if (mode) {
+        setCaptureMode(mode);
+        if (mode === 'bulk') loadBulkTeamMembers();
+      }
+    });
+  });
+
+  // Bulk team actions
+  const btnRefreshTeam = document.getElementById('btn-refresh-team');
+  if (btnRefreshTeam) btnRefreshTeam.addEventListener('click', loadBulkTeamMembers);
+
+  const btnBulkSelectAll = document.getElementById('btn-bulk-select-all');
+  if (btnBulkSelectAll) btnBulkSelectAll.addEventListener('click', () => {
+    const checkboxes = document.querySelectorAll('#bulk-team-list .bulk-checkbox');
+    checkboxes.forEach((cb, i) => {
+      cb.checked = true;
+      state.bulkSelectedIndices.add(parseInt(cb.dataset.index, 10));
+    });
+    updateBulkSelectionCount();
+  });
+
+  const btnBulkClearSel = document.getElementById('btn-bulk-clear-sel');
+  if (btnBulkClearSel) btnBulkClearSel.addEventListener('click', () => {
+    document.querySelectorAll('#bulk-team-list .bulk-checkbox').forEach(cb => { cb.checked = false; });
+    state.bulkSelectedIndices.clear();
+    updateBulkSelectionCount();
+  });
+
+  const btnBulkEnrichCapture = document.getElementById('btn-bulk-enrich-capture');
+  if (btnBulkEnrichCapture) btnBulkEnrichCapture.addEventListener('click', startBulkCaptureQueue);
+
+  // Inline Enrichment Panel (Phase 5)
+  const btnInlineEnrich = document.getElementById('btn-inline-enrich');
+  if (btnInlineEnrich) btnInlineEnrich.addEventListener('click', startInlineEnrichment);
+
+  const btnEnrichDismiss = document.getElementById('btn-enrichment-dismiss');
+  if (btnEnrichDismiss) btnEnrichDismiss.addEventListener('click', () => {
+    const cardEl = document.getElementById('enrichment-result-card');
+    if (cardEl) cardEl.style.display = 'none';
+  });
+
+  const btnApplyAll = document.getElementById('btn-apply-all-enrichment');
+  if (btnApplyAll) btnApplyAll.addEventListener('click', applyAllEnrichmentFields);
+
+  // Enrichment toggle (collapsible)
+  const enrichmentToggle = document.getElementById('enrichment-toggle');
+  if (enrichmentToggle) {
+    enrichmentToggle.addEventListener('click', () => {
+      const content = document.getElementById('enrichment-panel-content');
+      const icon    = document.getElementById('enrichment-toggle-icon');
+      if (!content) return;
+      const isCollapsed = content.classList.toggle('collapsed');
+      if (icon) icon.textContent = isCollapsed ? '▶' : '▼';
+    });
+  }
+
+  // Delegated click handler for per-field Apply / Dismiss buttons in enrichment card
+  document.addEventListener('click', (e) => {
+    const applyBtn   = e.target.closest('.enrichment-apply-btn');
+    const dismissBtn = e.target.closest('.enrichment-dismiss-btn');
+    if (applyBtn) {
+      const idx = parseInt(applyBtn.dataset.fieldIdx, 10);
+      if (!isNaN(idx)) handleEnrichmentApply(idx);
+    }
+    if (dismissBtn) {
+      const idx = parseInt(dismissBtn.dataset.fieldIdx, 10);
+      if (!isNaN(idx)) handleEnrichmentDismiss(idx);
+    }
+  });
 });

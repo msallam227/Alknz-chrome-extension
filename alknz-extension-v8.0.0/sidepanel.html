@@ -29,21 +29,11 @@
     <nav class="tab-nav">
       <button class="tab-btn active" data-tab="capture">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-          <circle cx="9" cy="7" r="4"></circle>
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-        </svg>
-        <span data-i18n="tabs.capture">Capture</span>
-      </button>
-      <button class="tab-btn" data-tab="deep-ai">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 21l-4.35-4.35"></path>
           <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.35-4.35"></path>
-          <path d="M11 8v6"></path>
-          <path d="M8 11h6"></path>
+          <path d="M11 8v6M8 11h6"></path>
         </svg>
-        <span data-i18n="tabs.deepAi">Deep AI</span>
+        <span data-i18n="tabs.capture">Research</span>
       </button>
       <button class="tab-btn" data-tab="scraper">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -51,14 +41,15 @@
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
-        <span data-i18n="tabs.scraper">Scraper</span>
+        <span data-i18n="tabs.scraper">Batch</span>
       </button>
       <button class="tab-btn" data-tab="history">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
+          <path d="M20 9V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          <polyline points="13 2 13 8 19 8 19 2 13 2"></polyline>
         </svg>
-        <span data-i18n="tabs.history">History</span>
+        <span data-i18n="tabs.history">Saved</span>
       </button>
     </nav>
 
@@ -79,8 +70,31 @@
         <p style="font-size: 11px; color: #64748b; margin-top: 8px; text-align: center;" data-i18n="sections.clickToEdit">Click any card to load into form for editing</p>
       </section>
       
-      <section class="section">
+      <!-- MODE BANNER — auto-detected from page type, manually overrideable -->
+      <div id="capture-mode-banner" class="mode-banner" style="display: none;">
+        <div class="mode-detected-label">
+          <span class="mode-detected-icon" id="mode-detected-icon">🧑</span>
+          <span id="mode-detected-text">Person Mode</span>
+        </div>
+        <div class="mode-switch-btns">
+          <button class="mode-switch-btn active" id="btn-mode-person" data-mode="person" title="Capture this person">
+            🧑 Person
+          </button>
+          <button class="mode-switch-btn" id="btn-mode-company" data-mode="company" title="Capture this company/firm">
+            🏢 Company
+          </button>
+          <button class="mode-switch-btn" id="btn-mode-bulk" data-mode="bulk" title="Extract multiple people from this team page">
+            👥 Team
+          </button>
+        </div>
+      </div>
+
+      <section class="section" id="section-evidence">
         <h3 class="section-title" data-i18n="sections.evidence">Evidence Fields</h3>
+        <div class="quick-fill-bar">
+          <button type="button" id="btn-capture-page" class="btn btn-small btn-ghost" data-i18n="buttons.capturePage">⟳ Capture Page</button>
+          <button type="button" id="btn-capture-text" class="btn btn-small btn-ghost" data-i18n="buttons.captureSelected">✂ Capture Selected</button>
+        </div>
         <div class="form-group">
           <label class="label" data-i18n="labels.sourceUrl">Source URL</label>
           <input type="text" id="source-url" class="input" readonly data-i18n-placeholder="placeholders.autoCaptured">
@@ -96,17 +110,15 @@
         </div>
       </section>
 
-      <section class="section">
+      <section class="section" id="section-person-details">
         <h3 class="section-title" data-i18n="sections.investorDetails">Investor Details</h3>
         
+        <!-- entity-type hidden: replaced by mode banner. Kept for backward compat. -->
+        <select id="entity-type" style="display:none;" aria-hidden="true">
+          <option value="investor">Investor</option>
+          <option value="organization">Organization</option>
+        </select>
         <div class="form-row">
-          <div class="form-group">
-            <label class="label" data-i18n="labels.entityType">Entity Type</label>
-            <select id="entity-type" class="select">
-              <option value="investor" data-i18n="options.investor">Investor</option>
-              <option value="organization" data-i18n="options.organization">Organization</option>
-            </select>
-          </div>
           <div class="form-group">
             <label class="label" data-i18n="labels.investorType">Investor Type</label>
             <input type="text" id="investor-type" class="input" data-i18n-placeholder="placeholders.investorType">
@@ -179,8 +191,12 @@
         </div>
       </section>
 
-      <section class="section">
-        <h3 class="section-title" data-i18n="sections.contactRelationship">Contact & Relationship</h3>
+      <section class="section section-collapsible" id="section-contact-relationship">
+        <div class="section-toggle" id="toggle-contact-relationship">
+          <h3 class="section-title" data-i18n="sections.contactRelationship">Contact & Relationship</h3>
+          <span class="section-toggle-icon">▼</span>
+        </div>
+        <div class="section-collapsible-content collapsed" id="content-contact-relationship">
 
         <div class="form-row">
           <div class="form-group">
@@ -232,11 +248,15 @@
             <option value="HIGH" data-i18n="options.high">High</option>
           </select>
         </div>
+        </div><!-- end section-collapsible-content for contact-relationship -->
       </section>
 
-      <section class="section">
-        <h3 class="section-title" data-i18n="sections.investmentFocus">Investment Focus</h3>
-        
+      <section class="section section-collapsible" id="section-investment-focus">
+        <div class="section-toggle" id="toggle-investment-focus">
+          <h3 class="section-title" data-i18n="sections.investmentFocus">Investment Focus</h3>
+          <span class="section-toggle-icon">▼</span>
+        </div>
+        <div class="section-collapsible-content collapsed" id="content-investment-focus">
         <div class="form-group">
           <label class="label" data-i18n="labels.investmentSectors">Sectors/Industries</label>
           <input type="text" id="investment-sectors" class="input" placeholder="e.g., Fintech, SaaS, Healthcare (comma-separated)">
@@ -262,8 +282,164 @@
           <label class="label" data-i18n="labels.geographicFocus">Geographic Focus</label>
           <input type="text" id="geographic-focus" class="input" placeholder="e.g., MENA, GCC, Egypt (comma-separated)">
         </div>
+        </div><!-- end section-collapsible-content for investment-focus -->
       </section>
 
+      <!-- INLINE ENRICHMENT PANEL — shown only in Person Mode -->
+      <section class="section" id="section-enrichment" style="display: none;">
+        <div class="section-toggle" id="enrichment-toggle">
+          <h3 class="section-title">AI Enrichment</h3>
+          <span class="section-toggle-icon" id="enrichment-toggle-icon">▶</span>
+        </div>
+        <div class="section-collapsible-content collapsed" id="enrichment-panel-content">
+          <button id="btn-inline-enrich" class="btn btn-ai btn-full" style="margin-bottom: 12px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-start">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            Enrich with AI
+          </button>
+          <div id="enrichment-status" class="enrichment-status" style="display: none;">
+            <div class="enrichment-spinner">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin-icon">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+              Searching...
+            </div>
+          </div>
+          <div id="enrichment-result-card" class="enrichment-result-card" style="display: none;">
+            <div class="enrichment-result-header">
+              <span>AI Enrichment Results</span>
+              <button class="btn btn-small btn-ghost" id="btn-enrichment-dismiss">✕ Dismiss</button>
+            </div>
+            <div id="enrichment-fields-list">
+              <!-- Field rows rendered by JS -->
+            </div>
+            <div class="enrichment-result-actions">
+              <button class="btn btn-small btn-accent" id="btn-apply-all-enrichment">Apply All</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COMPANY MODE SECTION — shown only when capture mode is 'company' -->
+      <section class="section" id="section-company-details" style="display: none;">
+        <h3 class="section-title">Company / Firm Details</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Organization Name</label>
+            <input type="text" id="org-name" class="input" placeholder="Firm or fund name">
+          </div>
+          <div class="form-group">
+            <label class="label">Organization Type</label>
+            <input type="text" id="org-type" class="input" placeholder="VC Fund, Family Office, Accelerator...">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Website</label>
+            <input type="url" id="org-website" class="input" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label class="label">LinkedIn URL</label>
+            <input type="url" id="org-linkedin-url" class="input" placeholder="https://linkedin.com/company/...">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Emails (up to 5)</label>
+          <div class="multi-input-group">
+            <input type="email" id="org-email-1" class="input input-sm" placeholder="Email 1">
+            <input type="email" id="org-email-2" class="input input-sm" placeholder="Email 2">
+            <input type="email" id="org-email-3" class="input input-sm" placeholder="Email 3">
+            <input type="email" id="org-email-4" class="input input-sm" placeholder="Email 4">
+            <input type="email" id="org-email-5" class="input input-sm" placeholder="Email 5">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Phones (up to 5)</label>
+          <div class="multi-input-group">
+            <input type="tel" id="org-phone-1" class="input input-sm" placeholder="Phone 1">
+            <input type="tel" id="org-phone-2" class="input input-sm" placeholder="Phone 2">
+            <input type="tel" id="org-phone-3" class="input input-sm" placeholder="Phone 3">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">HQ City</label>
+            <input type="text" id="org-hq-city" class="input" placeholder="City">
+          </div>
+          <div class="form-group">
+            <label class="label">HQ Country</label>
+            <input type="text" id="org-hq-country" class="input" placeholder="Country">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Description</label>
+          <textarea id="org-description" class="textarea" rows="3" placeholder="Brief description of the firm..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Investment Sectors</label>
+          <input type="text" id="org-investment-sectors" class="input" placeholder="Fintech, SaaS, Healthcare...">
+        </div>
+        <div class="form-group">
+          <label class="label">Investment Stages</label>
+          <input type="text" id="org-investment-stages" class="input" placeholder="Pre-Seed, Seed, Series A...">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Check Size Min</label>
+            <input type="text" id="org-check-size-min" class="input" placeholder="e.g. $50K">
+          </div>
+          <div class="form-group">
+            <label class="label">Check Size Max</label>
+            <input type="text" id="org-check-size-max" class="input" placeholder="e.g. $2M">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="label">Geographic Focus</label>
+          <input type="text" id="org-geographic-focus" class="input" placeholder="MENA, GCC, Egypt...">
+        </div>
+        <div class="form-group">
+          <label class="label">Notes</label>
+          <textarea id="org-notes" class="textarea" rows="2" placeholder="Additional notes..."></textarea>
+        </div>
+      </section>
+
+      <!-- BULK TEAM MODE SECTION — shown only when capture mode is 'bulk' -->
+      <section class="section" id="section-bulk-team" style="display: none;">
+        <h3 class="section-title">
+          Team Members Found
+          <span class="count-badge" id="bulk-team-count">0</span>
+        </h3>
+        <p class="helper-text" id="bulk-scroll-hint" style="font-size: 11px; color: #64748b; margin-bottom: 8px;">
+          Scroll the page to load more people, then click Refresh.
+        </p>
+        <button class="btn btn-small btn-ghost" id="btn-refresh-team" style="margin-bottom: 12px;">Refresh List</button>
+
+        <div id="bulk-team-list" class="bulk-team-list">
+          <!-- Rendered by JS -->
+        </div>
+
+        <div class="bulk-team-actions" id="bulk-team-actions" style="display: none; margin-top: 12px; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-small btn-ghost" id="btn-bulk-select-all">Select All</button>
+          <button class="btn btn-small btn-ghost" id="btn-bulk-clear-sel">Clear</button>
+          <button class="btn btn-accent btn-full" id="btn-bulk-enrich-capture" style="margin-top: 8px;">
+            Enrich &amp; Capture Selected
+            (<span id="bulk-selected-count">0</span>)
+          </button>
+        </div>
+
+        <div id="bulk-capture-queue" class="bulk-capture-queue" style="display: none; margin-top: 16px;">
+          <!-- Per-person enrichment queue cards rendered by JS -->
+        </div>
+      </section>
 
       <section class="section suggestions-section">
         <div class="section-header-collapsible" id="suggestions-toggle">
@@ -282,168 +458,21 @@
         </div>
       </section>
 
-      <section class="section address-book-section">
-        <div class="section-header-collapsible" id="address-book-toggle">
-          <h3 class="section-title" data-i18n="sections.addressBook">ALKNZ Address Book</h3>
-          <span class="collapse-icon" id="collapse-icon">▼</span>
-        </div>
-        <div id="address-book-content" class="address-book-content">
-          <div id="address-book-empty" class="address-book-empty" data-i18n="messages.noDrafts">
-            No drafts saved yet
-          </div>
-          <table id="address-book-table" class="address-book-table" style="display: none;">
-            <thead>
-              <tr>
-                <th data-i18n="table.name">Name</th>
-                <th data-i18n="table.firm">Firm</th>
-                <th data-i18n="table.country">Country</th>
-                <th data-i18n="table.type">Type</th>
-                <th data-i18n="table.status">Status</th>
-                <th data-i18n="table.created">Created</th>
-                <th data-i18n="table.actions">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="address-book-body">
-            </tbody>
-          </table>
-        </div>
+      <!-- Conflict warning bar (shown when another team member captured the same person) -->
+      <div id="conflict-warning-bar" class="conflict-warning-bar" style="display:none;"></div>
+
+      <!-- Recommendations card (shown after successful upload) -->
+      <section class="section" id="section-recommendations" style="display:none;">
+        <h3 class="section-title">Research These Next</h3>
+        <div id="recommendations-list" class="recommendations-list"></div>
       </section>
 
-      </div>
+      <!-- Next steps card (shown after successful upload) -->
+      <section class="section" id="section-next-steps" style="display:none;">
+        <h3 class="section-title">Suggested Approach</h3>
+        <div class="next-steps-body"></div>
+      </section>
 
-      <div id="tab-deep-ai" class="tab-content">
-        <section class="section deep-ai-section">
-          <h3 class="section-title" data-i18n="sections.contactIntelligence">Contact Intelligence</h3>
-          
-          <div class="profile-card">
-            <div class="profile-avatar">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="12" cy="8" r="5"></circle>
-                <path d="M20 21a8 8 0 1 0-16 0"></path>
-              </svg>
-            </div>
-            <div class="profile-info">
-              <div class="profile-name" id="deep-profile-name" data-i18n="deepAi.searchPrompt">Search for a contact...</div>
-              <div class="profile-title" id="deep-profile-title" data-i18n="deepAi.searchHint">Enter name or LinkedIn URL below</div>
-              <div class="profile-company" id="deep-profile-company"></div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="label" data-i18n="labels.searchQuery">Search Query</label>
-            <input type="text" id="deep-search-query" class="input" data-i18n-placeholder="placeholders.searchQuery">
-          </div>
-
-          <div class="form-group" style="margin-top: 8px;">
-            <label class="label" style="font-size: 11px; color: #9ca3af;">Additional URLs (optional - paste LinkedIn, company page, etc.)</label>
-            <textarea id="deep-search-urls" class="textarea" placeholder="Paste URLs here, one per line (optional)" style="min-height: 50px; font-size: 12px;"></textarea>
-          </div>
-
-          <button id="btn-deep-search" class="btn btn-ai btn-full">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-start">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <span data-i18n="buttons.startDeepSearch">Start Deep Search</span>
-          </button>
-
-          <div id="deep-search-terminal" class="terminal-window" style="display: none;">
-            <div class="terminal-header">
-              <span class="terminal-dot red"></span>
-              <span class="terminal-dot yellow"></span>
-              <span class="terminal-dot green"></span>
-              <span class="terminal-title" data-i18n="deepAi.aiRunning">AI Agent Running...</span>
-            </div>
-            <div class="terminal-body" id="terminal-logs">
-            </div>
-            <div class="terminal-progress">
-              <div class="progress-bar" id="progress-bar"></div>
-            </div>
-          </div>
-
-          <div id="deep-search-results" class="search-results" style="display: none;">
-            <h4 class="results-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              <span data-i18n="deepAi.foundContact">Found Contact Information</span>
-            </h4>
-            
-            <div class="result-card">
-              <div class="result-row">
-                <span class="result-label" data-i18n="labels.workEmail">Work Email</span>
-                <span class="result-value blurred" id="result-email">••••••@company.com</span>
-                <span class="confidence-chip high">92%</span>
-              </div>
-              <div class="result-row">
-                <span class="result-label" data-i18n="labels.phone">Phone</span>
-                <span class="result-value blurred" id="result-phone">+1 ••• ••• ••••</span>
-                <span class="confidence-chip medium">78%</span>
-              </div>
-              <div class="result-row">
-                <span class="result-label" data-i18n="labels.linkedin">LinkedIn</span>
-                <span class="result-value" id="result-linkedin">linkedin.com/in/...</span>
-                <span class="confidence-chip high">100%</span>
-              </div>
-              <div class="result-row">
-                <span class="result-label">Twitter/X</span>
-                <span class="result-value" id="result-twitter">-</span>
-                <span class="confidence-chip low">-</span>
-              </div>
-              <div class="result-row">
-                <span class="result-label">Website</span>
-                <span class="result-value" id="result-website">-</span>
-                <span class="confidence-chip low">-</span>
-              </div>
-              <div class="result-row">
-                <span class="result-label">Location</span>
-                <span class="result-value" id="result-location">-</span>
-                <span class="confidence-chip low">-</span>
-              </div>
-            </div>
-
-            <div id="connections-section" class="connections-section" style="display: none;">
-              <h5 class="connections-title">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                Related Connections
-              </h5>
-              <div id="connections-list" class="connections-list"></div>
-            </div>
-
-            <button id="btn-reveal-contact" class="btn btn-accent btn-full">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-start">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-              <span data-i18n="buttons.revealContact">Reveal Contact Info</span>
-            </button>
-
-            <button id="btn-add-to-capture" class="btn btn-secondary btn-full" style="margin-top: 8px; display: none;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-start">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <line x1="19" y1="8" x2="19" y2="14"></line>
-                <line x1="22" y1="11" x2="16" y2="11"></line>
-              </svg>
-              <span data-i18n="buttons.addToCapture">Add to Capture Form</span>
-            </button>
-
-            <button id="btn-merge-deepai-to-capture" class="btn btn-primary btn-full" style="margin-top: 8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon-start">
-                <path d="M12 5v14"></path>
-                <path d="M5 12h14"></path>
-              </svg>
-              <span data-i18n="buttons.mergeIntoCapture">Merge into Capture</span>
-            </button>
-            <p class="helper-text" style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; text-align: center;" data-i18n="deepAi.mergeHelper">Fills missing Capture fields using Deep AI (does not overwrite your edits).</p>
-          </div>
-        </section>
       </div>
 
       <div id="tab-scraper" class="tab-content">
@@ -744,11 +773,38 @@
       </div>
 
       <div id="tab-history" class="tab-content">
+        <section class="section address-book-section">
+          <div class="section-header-collapsible" id="address-book-toggle">
+            <h3 class="section-title" data-i18n="sections.addressBook">Saved Contacts</h3>
+            <span class="collapse-icon" id="collapse-icon">▼</span>
+          </div>
+          <div id="address-book-content" class="address-book-content">
+            <div id="address-book-empty" class="address-book-empty" data-i18n="messages.noDrafts">
+              No drafts saved yet
+            </div>
+            <table id="address-book-table" class="address-book-table" style="display: none;">
+              <thead>
+                <tr>
+                  <th data-i18n="table.name">Name</th>
+                  <th data-i18n="table.firm">Firm</th>
+                  <th data-i18n="table.country">Country</th>
+                  <th data-i18n="table.type">Type</th>
+                  <th data-i18n="table.status">Status</th>
+                  <th data-i18n="table.created">Created</th>
+                  <th data-i18n="table.actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="address-book-body">
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="section">
           <h3 class="section-title" data-i18n="sections.searchHistory">Search History</h3>
           <div id="history-list" class="history-list">
             <div class="history-empty" data-i18n="messages.noSearches">
-              No searches yet. Use Deep AI to find contact information.
+              No searches yet.
             </div>
           </div>
         </section>
@@ -757,25 +813,35 @@
     </main>
 
     <footer class="footer" id="capture-footer">
-      <div class="button-row">
+      <div id="footer-research" class="footer-row">
         <button id="btn-save-draft" class="btn btn-secondary" data-i18n="buttons.saveDraft">Save Draft</button>
         <button id="btn-upload" class="btn btn-primary" data-i18n="buttons.upload">Upload</button>
         <button id="btn-clear-form" class="btn btn-ghost" data-i18n="buttons.clear">Clear</button>
       </div>
-      <div class="button-row">
-        <button id="btn-capture-page" class="btn btn-secondary" data-i18n="buttons.capturePage">Capture Page</button>
-        <button id="btn-capture-text" class="btn btn-secondary" data-i18n="buttons.captureSelected">Capture Selected</button>
-        <button id="btn-smart-map" class="btn btn-accent" data-i18n="buttons.smartMap">Smart Map</button>
-      </div>
-      <div class="button-row">
+      <div id="footer-saved" class="footer-row" style="display:none;">
         <button id="btn-export" class="btn btn-secondary" data-i18n="buttons.exportExcel">Export Excel</button>
-        <button id="btn-ai-autofill" class="btn btn-ai" data-i18n="buttons.aiAutoFill">AI Auto-Fill</button>
       </div>
     </footer>
 
   </div>
 
   <script src="xlsx.min.js"></script>
-  <script src="sidepanel.js"></script>
+  <!-- Modular JS — loaded in dependency order (Phase 8 split) -->
+  <script src="translations.js"></script>
+  <script src="state.js"></script>
+  <script src="utils.js"></script>
+  <script src="storage.js"></script>
+  <script src="form_person.js"></script>
+  <script src="form_company.js"></script>
+  <script src="suggestions.js"></script>
+  <script src="enrichment.js"></script>
+  <script src="form_bulk.js"></script>
+  <script src="bulk_enrich.js"></script>
+  <script src="mode_controller.js"></script>
+  <script src="content_bridge.js"></script>
+  <script src="api.js"></script>
+  <script src="scraper.js"></script>
+  <script src="saved.js"></script>
+  <script src="init.js"></script>
 </body>
 </html>
