@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALKNZ Intelligence | API Reference</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            alknz: {
+              bg: '#020408',
+              surface: '#0f172a',
+              border: '#1e293b',
+              primary: '#3b82f6',
+              accent: '#6366f1',
+              text: '#f8fafc',
+              muted: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            arabic: ['Noto Sans Arabic', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background:#020408; color:#f8fafc; overflow-x:hidden; font-family:'Inter',sans-serif; }
+    .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
+    .gradient-text { background: linear-gradient(to right, #60a5fa, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .nav-item.active { color:#60a5fa; border-bottom:2px solid #60a5fa; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #020408; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { background: rgba(2,4,8,.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px; overflow:auto; }
+    .chip { font-size: 10px; letter-spacing: .25em; text-transform: uppercase; font-weight: 800; padding: 6px 10px; border-radius: 999px; }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+  <!-- Nav -->
+  <nav class="fixed top-0 w-full z-50 glass-panel border-b border-alknz-border">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+      <a class="flex items-center gap-3" href="./index.html">
+        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+          <span class="text-white font-bold text-xl">A</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-bold tracking-widest">ALKNZ</span>
+          <span class="text-[10px] text-alknz-muted tracking-[0.2em] uppercase">Extension Docs</span>
+        </div>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-alknz-muted">
+        <a href="./index.html" class="nav-item hover:text-white py-2">Overview</a>
+        <a href="./features.html" class="nav-item hover:text-white py-2">Features</a>
+        <a href="./install.html" class="nav-item hover:text-white py-2">Installation</a>
+        <a href="./api.html" class="nav-item hover:text-white py-2 active">API</a>
+        <a href="./arabic.html" class="nav-item hover:text-white py-2">Arabic Engine</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="relative z-10 flex-grow pt-24 pb-24">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <!-- Header -->
+      <div class="mb-14">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-widest uppercase">
+          <i class="fa-solid fa-plug"></i> API Reference
+        </div>
+
+        <h1 class="text-4xl lg:text-5xl font-bold mt-4">
+          Backend API: <span class="gradient-text">Requests, Responses, Contracts</span>
+        </h1>
+
+        <p class="text-alknz-muted mt-4 max-w-3xl leading-relaxed text-sm">
+          This page documents the backend interface used by the ALKNZ Intelligence Chrome Extension.
+          It covers authentication, required headers, payload formats, returned objects, and error shapes.
+          All examples use placeholders — do not paste real keys into public repositories.
+        </p>
+      </div>
+
+      <!-- 2-col layout -->
+      <div class="grid lg:grid-cols-12 gap-8">
+
+        <!-- Left content -->
+        <div class="lg:col-span-8 space-y-8">
+
+          <!-- Base URL -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Base URL</div>
+                <div class="text-sm text-alknz-muted mt-2">
+                  The extension is configured with a backend server URL. All API calls are relative to this URL.
+                </div>
+                <div class="mt-4">
+                  <code id="baseUrl" class="text-xs text-slate-200 break-all">https://YOUR-BACKEND-SERVER</code>
+                </div>
+              </div>
+              <button data-copy="baseUrl" onclick="copyText('baseUrl')" class="text-slate-400 hover:text-white">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+
+            <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              Where to set this: Extension → Settings (gear) → <b>Backend Server URL</b>.
+            </div>
+          </section>
+
+          <!-- Auth -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">Auth</span>
+              <h2 class="text-xl font-bold">Authentication</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              The extension authenticates using a single internal master API key. The key is included in request headers.
+            </p>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Required headers</div>
+                <pre class="text-xs text-slate-200"><code>{
+  "Content-Type": "application/json",
+  "x-api-key": "REPLACE_WITH_MASTER_KEY"
+}</code></pre>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Notes</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Keep keys out of GitHub / screenshots.</li>
+                  <li>If you get <b>401</b>, the key is invalid or missing.</li>
+                  <li>If you get <b>403</b>, the key is valid but blocked by policy.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Core endpoints -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">Endpoints</span>
+              <h2 class="text-xl font-bold">Core Endpoints</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              The extension typically uses these API calls in the Capture → Deep AI → Merge → Upload flow.
+              Your backend may expose additional routes; these are the expected contracts used by the extension.
+            </p>
+
+            <div class="mt-6 overflow-x-auto">
+              <table class="w-full text-left text-sm border border-alknz-border rounded-xl overflow-hidden">
+                <thead class="bg-slate-900/60 text-xs uppercase tracking-widest text-alknz-muted">
+                  <tr>
+                    <th class="p-3">Method</th>
+                    <th class="p-3">Route</th>
+                    <th class="p-3">Purpose</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-200">
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><span class="px-2 py-1 rounded bg-green-500/10 text-green-300 text-xs font-bold">GET</span></td>
+                    <td class="p-3"><code>/health</code></td>
+                    <td class="p-3 text-alknz-muted">Connectivity check / server status</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><span class="px-2 py-1 rounded bg-green-500/10 text-green-300 text-xs font-bold">GET</span></td>
+                    <td class="p-3"><code>/api/v1/profile/lookup</code></td>
+                    <td class="p-3 text-alknz-muted">Smart map: find existing profiles (dedupe / linking)</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><span class="px-2 py-1 rounded bg-blue-500/10 text-blue-300 text-xs font-bold">POST</span></td>
+                    <td class="p-3"><code>/api/v1/deep-ai/extract</code></td>
+                    <td class="p-3 text-alknz-muted">Deep AI enrichment (optional)</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><span class="px-2 py-1 rounded bg-blue-500/10 text-blue-300 text-xs font-bold">POST</span></td>
+                    <td class="p-3"><code>/api/v1/intelligence/upload</code></td>
+                    <td class="p-3 text-alknz-muted">Upload final payload (capture + enrichment + metadata)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              If your backend route names differ, keep the payload contracts the same and adjust the extension’s config/router mapping.
+            </div>
+          </section>
+
+          <!-- Health -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="health">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">GET</span>
+              <h2 class="text-xl font-bold">/health</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              Used to confirm that the backend is reachable. This should be lightweight and fast.
+            </p>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Example request</div>
+                <pre class="text-xs text-slate-200"><code>GET /health
+x-api-key: REPLACE_WITH_MASTER_KEY</code></pre>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Example response</div>
+                <pre class="text-xs text-slate-200"><code>{
+  "ok": true,
+  "service": "alknz-backend",
+  "version": "8.0.0",
+  "time": "2026-01-30T12:00:00Z"
+}</code></pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- Lookup -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="lookup">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">GET</span>
+              <h2 class="text-xl font-bold">/api/v1/profile/lookup</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              “Smart Map” lookup used to reduce duplication. The extension queries the backend using signals like
+              name, firm, domain, email, and/or URL.
+            </p>
+
+            <div class="mt-5">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Example request</div>
+              <pre class="text-xs text-slate-200"><code>GET /api/v1/profile/lookup?name=Khaled%20Zaidan&firm=ALKNZ%20Ventures&email=khaled@example.com
+x-api-key: REPLACE_WITH_MASTER_KEY</code></pre>
+            </div>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Response (matches found)</div>
+                <pre class="text-xs text-slate-200"><code>{
+  "matches": [
+    {
+      "profile_id": "prof_123",
+      "type": "person",
+      "display_name": "Khaled Zaidan",
+      "firm": "ALKNZ Ventures",
+      "confidence": 0.92
+    }
+  ]
+}</code></pre>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Response (no matches)</div>
+                <pre class="text-xs text-slate-200"><code>{
+  "matches": []
+}</code></pre>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-alknz-bg border border-alknz-border rounded-xl p-4 text-xs text-alknz-muted">
+              Smart Map results are suggestions. The extension should not auto-merge records silently.
+            </div>
+          </section>
+
+          <!-- Deep AI -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="deepai">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">POST</span>
+              <h2 class="text-xl font-bold">/api/v1/deep-ai/extract</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              Optional enrichment step. The extension sends captured text and metadata; backend returns extracted fields
+              and/or a summary. If extraction is empty, the extension proceeds without enrichment.
+            </p>
+
+            <div class="mt-5">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Request body</div>
+              <pre class="text-xs text-slate-200"><code>{
+  "source_url": "https://example.com/profile",
+  "raw_text": "Copied page text / visible signals...",
+  "language_hint": "en",
+  "region_hint": "MENA",
+  "entity_hint": {
+    "type": "person",
+    "name": "Example Name",
+    "firm": "Example Firm"
+  }
+}</code></pre>
+            </div>
+
+            <div class="mt-5">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Response body</div>
+              <pre class="text-xs text-slate-200"><code>{
+  "ok": true,
+  "extracted": {
+    "display_name": "Example Name",
+    "firm": "Example Firm",
+    "role": "Partner",
+    "country": "Saudi Arabia",
+    "city": "Riyadh",
+    "emails": ["name@example.com"],
+    "phones": ["+9665XXXXXXX"],
+    "tags": ["investor", "proptech"],
+    "summary": "Short context about the entity based on extracted signals."
+  },
+  "confidence": 0.81
+}</code></pre>
+            </div>
+
+            <div class="mt-6 bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              Deep AI should never overwrite already-known values during merge. It supplies candidates only.
+            </div>
+          </section>
+
+          <!-- Upload -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="upload">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">POST</span>
+              <h2 class="text-xl font-bold">/api/v1/intelligence/upload</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              Upload is the only call that mutates backend data. The payload contains capture fields, optional enrichment,
+              merge flags, and the source URL.
+            </p>
+
+            <div class="mt-5">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Request body (canonical)</div>
+              <pre class="text-xs text-slate-200"><code>{
+  "include_deep_ai": true,
+  "deep_ai": {
+    "merged_into_form": false,
+    "extracted": { "display_name": "Example Name", "role": "Partner" },
+    "confidence": 0.81
+  },
+
+  "capture": {
+    "source_url": "https://example.com/profile",
+    "entity_type": "person",
+    "display_name": "Example Name",
+    "firm": "Example Firm",
+    "role": "Partner",
+    "location": { "country": "Saudi Arabia", "city": "Riyadh" },
+
+    "emails": ["name@example.com"],
+    "phones": ["+9665XXXXXXX"],
+
+    "notes": "Optional user notes",
+    "raw_signals": {
+      "page_title": "Example Profile",
+      "page_snippet": "Short snippet…"
+    }
+  },
+
+  "merge": {
+    "strategy": "setIfEmpty",
+    "emails_union_dedupe_cap": 5,
+    "phones_union_dedupe_cap": 5
+  },
+
+  "meta": {
+    "captured_at": "2026-01-30T12:00:00Z",
+    "extension_version": "8.0.0"
+  }
+}</code></pre>
+            </div>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Success response</div>
+                <pre class="text-xs text-slate-200"><code>{
+  "ok": true,
+  "action": "created",
+  "profile_id": "prof_456",
+  "warnings": [],
+  "normalized": {
+    "emails": ["name@example.com"],
+    "phones": ["+9665XXXXXXX"]
+  }
+}</code></pre>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Update response</div>
+                <pre class="text-xs text-slate-200"><code>{
+  "ok": true,
+  "action": "updated",
+  "profile_id": "prof_123",
+  "warnings": ["Some fields were ignored because they were not empty."],
+  "merge_applied": {
+    "setIfEmpty": ["city", "role"],
+    "skipped": ["display_name", "firm"]
+  }
+}</code></pre>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-sky-900/10 border border-sky-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              The backend should enforce the same “do not overwrite populated fields” rule as the extension.
+            </div>
+          </section>
+
+          <!-- Errors -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="errors">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-red-500/10 text-red-300 border border-red-500/20">Errors</span>
+              <h2 class="text-xl font-bold">Error Model</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              The extension expects a consistent JSON error shape so it can render clean UI messages.
+            </p>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Canonical error body</div>
+                <pre class="text-xs text-slate-200"><code>{
+  "ok": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Missing or invalid API key",
+    "details": {}
+  }
+}</code></pre>
+              </div>
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Common HTTP statuses</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li><b>400</b> Bad Request (validation)</li>
+                  <li><b>401</b> Unauthorized (bad/missing key)</li>
+                  <li><b>403</b> Forbidden (policy)</li>
+                  <li><b>404</b> Not Found (wrong route)</li>
+                  <li><b>429</b> Rate limited</li>
+                  <li><b>500</b> Server error</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Security -->
+          <section class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-7" id="security">
+            <h2 class="text-xl font-bold flex items-center gap-3">
+              <i class="fa-solid fa-shield-halved text-blue-300"></i> Security & Internal Use
+            </h2>
+            <ul class="text-sm text-alknz-muted mt-3 space-y-2 list-disc list-inside">
+              <li>Never commit real API keys into this site repository.</li>
+              <li>Prefer distributing keys via a password manager or secure admin channel.</li>
+              <li>Rotate keys if a screenshot or repo leak occurs.</li>
+              <li>If hosting this docs site publicly: keep only placeholders.</li>
+            </ul>
+          </section>
+
+        </div>
+
+        <!-- Right sidebar -->
+        <aside class="lg:col-span-4">
+          <div class="glass-panel border border-alknz-border rounded-2xl p-6 sticky top-28">
+            <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold">API Navigation</div>
+
+            <div class="mt-4 space-y-2 text-sm">
+              <a href="#health" class="block text-slate-300 hover:text-white">Health</a>
+              <a href="#lookup" class="block text-slate-300 hover:text-white">Profile Lookup</a>
+              <a href="#deepai" class="block text-slate-300 hover:text-white">Deep AI Extract</a>
+              <a href="#upload" class="block text-slate-300 hover:text-white">Upload</a>
+              <a href="#errors" class="block text-slate-300 hover:text-white">Errors</a>
+              <a href="#security" class="block text-slate-300 hover:text-white">Security</a>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-alknz-border">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Related</div>
+              <a href="./install.html" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-screwdriver-wrench"></i> Installation
+              </a>
+              <a href="./features.html" class="w-full mt-3 px-4 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> Feature Rules
+              </a>
+              <a href="./arabic.html" class="w-full mt-3 px-4 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-language"></i> Arabic Engine
+              </a>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-black border-t border-alknz-border py-10">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+      <div class="text-xs text-slate-500">ALKNZ Intelligence – Internal API Reference</div>
+      <div class="text-xs text-slate-600">© 2026 ALKNZ Ventures</div>
+    </div>
+  </footer>
+
+  <script>
+    function copyText(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText.trim());
+    }
+  </script>
+
+</body>
+</html>

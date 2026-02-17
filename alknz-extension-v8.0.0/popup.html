@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALKNZ Investor Capture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    
+    <header class="header">
+      <div class="logo-wrapper">
+        <img src="assets/alknz-logo.svg" alt="ALKNZ Logo" class="logo-icon floating" width="48" height="48">
+        <span class="logo-text">ALKNZ</span>
+      </div>
+      <span class="header-subtitle">Investor Capture</span>
+    </header>
+
+    <main class="main">
+      
+      <section class="section">
+        <h3 class="section-title">Evidence Fields</h3>
+        <div class="form-group">
+          <label class="label">Source URL</label>
+          <input type="text" id="source-url" class="input" readonly placeholder="Auto-captured from page">
+        </div>
+        <div class="form-group">
+          <label class="label">Source Title</label>
+          <input type="text" id="source-title" class="input" readonly placeholder="Auto-captured from page">
+        </div>
+        <div class="form-group">
+          <label class="label">Selected Text</label>
+          <textarea id="selected-text" class="textarea" placeholder="Select text on page to capture or type manually"></textarea>
+          <button type="button" id="btn-clear-evidence" class="btn btn-small btn-ghost">Clear Evidence</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h3 class="section-title">Investor Details</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Investor Name</label>
+            <input type="text" id="investor-name" class="input" placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label class="label">Investor Type</label>
+            <input type="text" id="investor-type" class="input" placeholder="Angel, VC, Family Office...">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Job Title</label>
+            <input type="text" id="job-title" class="input" placeholder="Managing Partner">
+          </div>
+          <div class="form-group">
+            <label class="label">Firm Name</label>
+            <input type="text" id="firm-name" class="input" placeholder="Firm or company">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">City</label>
+            <input type="text" id="location-city" class="input" placeholder="City">
+          </div>
+          <div class="form-group">
+            <label class="label">Country</label>
+            <input type="text" id="location-country" class="input" placeholder="Country">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Website</label>
+          <input type="url" id="website" class="input" placeholder="https://...">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Email</label>
+            <input type="email" id="email" class="input" placeholder="email@example.com">
+          </div>
+          <div class="form-group">
+            <label class="label">Phone</label>
+            <input type="tel" id="phone" class="input" placeholder="+1 555 0100">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">WhatsApp</label>
+          <input type="tel" id="whatsapp" class="input" placeholder="+1 555 0100">
+        </div>
+      </section>
+
+      <section class="section">
+        <h3 class="section-title">Contact & Relationship</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Assistant Name</label>
+            <input type="text" id="assistant-name" class="input" placeholder="Assistant name">
+          </div>
+          <div class="form-group">
+            <label class="label">Assistant Email</label>
+            <input type="email" id="assistant-email" class="input" placeholder="assistant@example.com">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="label">Relationship Strength</label>
+            <select id="relationship-strength" class="select">
+              <option value="">Select...</option>
+              <option value="Cold">Cold</option>
+              <option value="Warm">Warm</option>
+              <option value="Direct">Direct</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="label">Decision Role</label>
+            <select id="decision-role" class="select">
+              <option value="">Select...</option>
+              <option value="Decision Maker">Decision Maker</option>
+              <option value="Influencer">Influencer</option>
+              <option value="Gatekeeper">Gatekeeper</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Preferred Intro Path</label>
+          <input type="text" id="preferred-intro-path" class="input" placeholder="Best way to get introduced">
+        </div>
+
+        <div class="form-group">
+          <label class="label">Notes</label>
+          <textarea id="notes" class="textarea" placeholder="Additional notes..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="label">Confidence</label>
+          <select id="confidence" class="select">
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+            <option value="HIGH">High</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="section suggestions-section">
+        <div class="section-header-collapsible" id="suggestions-toggle">
+          <h3 class="section-title">AI Suggestions</h3>
+          <span class="collapse-icon" id="suggestions-collapse-icon">▼</span>
+        </div>
+        <div id="suggestions-content" class="suggestions-content">
+          <div id="suggestions-empty" class="suggestions-empty">
+            No suggestions yet. Click "AI Auto-Fill" to extract fields.
+          </div>
+          <div id="suggestions-list" class="suggestions-list" style="display: none;">
+          </div>
+          <div id="suggestions-actions" class="suggestions-actions" style="display: none;">
+            <button id="btn-accept-all" class="btn btn-small btn-accent">Accept All (High/Medium)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section address-book-section">
+        <div class="section-header-collapsible" id="address-book-toggle">
+          <h3 class="section-title">ALKNZ Address Book</h3>
+          <span class="collapse-icon" id="collapse-icon">▼</span>
+        </div>
+        <div id="address-book-content" class="address-book-content">
+          <div id="address-book-empty" class="address-book-empty">
+            No drafts saved yet
+          </div>
+          <table id="address-book-table" class="address-book-table" style="display: none;">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Firm</th>
+                <th>Country</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="address-book-body">
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <div class="button-row">
+        <button id="btn-save-draft" class="btn btn-secondary">Save Draft</button>
+        <button id="btn-upload" class="btn btn-primary">Upload</button>
+        <button id="btn-clear-form" class="btn btn-ghost">Clear</button>
+      </div>
+      <div class="button-row">
+        <button id="btn-capture-page" class="btn btn-secondary">Capture Page</button>
+        <button id="btn-capture-text" class="btn btn-secondary">Capture Selected</button>
+        <button id="btn-smart-map" class="btn btn-accent">Smart Map</button>
+      </div>
+      <div class="button-row">
+        <button id="btn-export" class="btn btn-secondary">Export Excel</button>
+        <button id="btn-ai-autofill" class="btn btn-ai">AI Auto-Fill</button>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="xlsx.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALKNZ Intelligence | Arabic Engine</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            alknz: {
+              bg: '#020408',
+              surface: '#0f172a',
+              border: '#1e293b',
+              primary: '#3b82f6',
+              accent: '#6366f1',
+              text: '#f8fafc',
+              muted: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            arabic: ['Noto Sans Arabic', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background:#020408; color:#f8fafc; overflow-x:hidden; font-family:'Inter',sans-serif; }
+    .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
+    .gradient-text { background: linear-gradient(to right, #60a5fa, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .nav-item.active { color:#60a5fa; border-bottom:2px solid #60a5fa; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #020408; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { background: rgba(2,4,8,.9); border: 1px solid #1e293b; border-radius: 14px; padding: 14px; overflow:auto; }
+
+    .rtl { direction: rtl; font-family: 'Noto Sans Arabic', sans-serif; }
+    .chip { font-size: 10px; letter-spacing: .25em; text-transform: uppercase; font-weight: 800; padding: 6px 10px; border-radius: 999px; }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+  <!-- Nav -->
+  <nav class="fixed top-0 w-full z-50 glass-panel border-b border-alknz-border">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+      <a class="flex items-center gap-3" href="./index.html">
+        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+          <span class="text-white font-bold text-xl">A</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-bold tracking-widest">ALKNZ</span>
+          <span class="text-[10px] text-alknz-muted tracking-[0.2em] uppercase">Extension Docs</span>
+        </div>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-alknz-muted">
+        <a href="./index.html" class="nav-item hover:text-white py-2">Overview</a>
+        <a href="./features.html" class="nav-item hover:text-white py-2">Features</a>
+        <a href="./install.html" class="nav-item hover:text-white py-2">Installation</a>
+        <a href="./api.html" class="nav-item hover:text-white py-2">API</a>
+        <a href="./arabic.html" class="nav-item hover:text-white py-2 active">Arabic Engine</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="relative z-10 flex-grow pt-24 pb-24">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <!-- Header -->
+      <div class="mb-14">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-widest uppercase">
+          <i class="fa-solid fa-language"></i> MENA Component
+        </div>
+        <h1 class="text-4xl lg:text-5xl font-bold mt-4">
+          Arabic Intelligence Engine <span class="gradient-text">Normalization & Extraction</span>
+        </h1>
+        <p class="text-alknz-muted mt-4 max-w-3xl leading-relaxed text-sm">
+          The Arabic Engine improves capture quality in the MENA region by handling Arabic scripts, honorifics,
+          name variants, RTL formatting, and organization naming patterns. This page documents the internal rules
+          used to normalize Arabic entities before matching, enrichment, and upload.
+        </p>
+      </div>
+
+      <!-- Layout -->
+      <div class="grid lg:grid-cols-12 gap-8">
+
+        <!-- Left -->
+        <div class="lg:col-span-8 space-y-8">
+
+          <!-- Why it exists -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="why">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">Purpose</span>
+              <h2 class="text-xl font-bold">Why the Arabic Engine Exists</h2>
+            </div>
+
+            <ul class="text-sm text-alknz-muted space-y-2 list-disc list-inside leading-relaxed">
+              <li><b>Arabic names have multiple valid spellings</b> (e.g., محمد / Muhammed / Mohammed).</li>
+              <li><b>Honorifics and titles</b> commonly appear inside names (دكتور، معالي، سمو).</li>
+              <li><b>Organizations use naming patterns</b> not captured well by generic scrapers (القابضة، المالية، للاستثمار).</li>
+              <li><b>RTL text flow</b> can break naïve parsing and tokenization.</li>
+              <li><b>Deduplication in MENA</b> requires more than exact string matching.</li>
+            </ul>
+
+            <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              Goal: Increase match accuracy and reduce duplicate profiles by normalizing Arabic before Smart Map and Deep AI.
+            </div>
+          </section>
+
+          <!-- Pipeline -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="pipeline">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">Pipeline</span>
+              <h2 class="text-xl font-bold">Where Arabic Normalization Runs</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              Arabic processing can occur in two places:
+            </p>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">Client-side (Extension)</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Detect RTL and Arabic characters</li>
+                  <li>Normalize obvious punctuation + whitespace</li>
+                  <li>Pass “clean candidates” into lookup / Deep AI</li>
+                </ul>
+              </div>
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">Server-side (Backend)</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Canonical name normalization (highest priority)</li>
+                  <li>Alias generation for matching/dedup</li>
+                  <li>Organization keyword classification</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mt-6 text-xs text-alknz-muted">
+              Rule of thumb: if normalization affects deduplication or stored identity fields, implement server-side.
+            </div>
+          </section>
+
+          <!-- Name normalization -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="names">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Names</span>
+              <h2 class="text-xl font-bold">Arabic Person Name Normalization</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              The Arabic Engine converts noisy name strings into stable matching keys. It does not “change identity” —
+              it creates consistent fields for lookup and dedup.
+            </p>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Normalize characters</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Remove tashkeel/diacritics ( َ ِ ُ ّ ْ )</li>
+                  <li>Normalize Alef variants: أ / إ / آ → ا</li>
+                  <li>Normalize Yeh variants: ى → ي (optional)</li>
+                  <li>Normalize Teh Marbuta: ة → ه (optional for matching only)</li>
+                  <li>Normalize punctuation and extra spaces</li>
+                </ul>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Remove honorifics</div>
+                <div class="text-xs text-alknz-muted leading-relaxed">
+                  Strip common tokens from the beginning of names for matching:
+                </div>
+                <div class="mt-3 text-xs text-slate-200">
+                  د. / دكتور / الدكتور / معالي / سعادة / سمو / الشيخ / الشيخة / الأستاذ / الأستاذة
+                </div>
+                <div class="mt-3 text-xs text-alknz-muted">
+                  Stored display_name can keep honorifics; matching_key should not.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Example</div>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                  <div class="text-xs font-bold text-white mb-2">Input</div>
+                  <div class="rtl text-sm text-slate-200">د. مُحَمَّد بن عبدالعزيز آل سعود</div>
+                </div>
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                  <div class="text-xs font-bold text-white mb-2">Matching key (normalized)</div>
+                  <div class="rtl text-sm text-slate-200">محمد بن عبدالعزيز ال سعود</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              NOTE: “Al/Al-” romanization is handled separately. Arabic normalization is for Arabic script strings.
+            </div>
+          </section>
+
+          <!-- Organization normalization -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="orgs">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">Organizations</span>
+              <h2 class="text-xl font-bold">Arabic Organization Normalization</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              MENA firms commonly include legal and business suffixes. The engine detects and classifies these tokens
+              to improve matching (and reduce duplicates caused by suffix variation).
+            </p>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Common suffix tokens</div>
+                <div class="text-xs text-slate-200 leading-relaxed">
+                  القابضة • المالية • للاستثمار • للاستشارات • للتطوير • للتقنية • للتكنولوجيا • للتجارة • للمقاولات • للصناعة • للتمويل
+                </div>
+                <div class="text-xs text-alknz-muted mt-3">
+                  These can be used for classification and alias generation.
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Legal forms (often omitted)</div>
+                <div class="text-xs text-slate-200 leading-relaxed">
+                  شركة • شركة مساهمة • مساهمة مقفلة • ذات مسؤولية محدودة • ش.م.م • ش.م.ح • ش.ذ.م.م
+                </div>
+                <div class="text-xs text-alknz-muted mt-3">
+                  For matching, generate aliases with and without legal forms.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Example</div>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                  <div class="text-xs font-bold text-white mb-2">Input</div>
+                  <div class="rtl text-sm text-slate-200">شركة الراجحي المالية</div>
+                </div>
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                  <div class="text-xs font-bold text-white mb-2">Aliases for matching</div>
+                  <div class="rtl text-sm text-slate-200">الراجحي المالية<br/>الراجحي</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Matching strategy -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="matching">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">Matching</span>
+              <h2 class="text-xl font-bold">Deduplication & Matching Strategy</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              Exact string matching fails in Arabic contexts. The engine creates multiple matching keys
+              to improve Smart Map lookup.
+            </p>
+
+            <div class="mt-5">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Recommended matching keys</div>
+              <pre class="text-xs text-slate-200"><code>{
+  "display_name": "د. مُحَمَّد بن عبدالعزيز آل سعود",
+  "name_key_ar": "محمد بن عبدالعزيز ال سعود",
+  "name_key_ar_compact": "محمدبنعبدالعزيزالسعود",
+  "aliases_ar": [
+    "محمد عبدالعزيز ال سعود",
+    "محمد بن عبدالعزيز"
+  ],
+  "romanized_aliases": [
+    "Mohammed bin Abdulaziz Al Saud",
+    "Muhammad bin Abdulaziz Al Saud"
+  ]
+}</code></pre>
+            </div>
+
+            <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              For privacy and correctness: store display_name as seen; store keys/aliases for matching only.
+            </div>
+          </section>
+
+          <!-- RTL UI -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="rtl">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-yellow-500/10 text-yellow-200 border border-yellow-500/20">UI</span>
+              <h2 class="text-xl font-bold">RTL Rendering & UI Handling</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              Arabic should be rendered RTL to avoid broken alignment and token confusion.
+              The extension UI can toggle RTL mode when Arabic is detected.
+            </p>
+
+            <div class="mt-5 grid md:grid-cols-2 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">Detection rule</div>
+                <div class="text-xs text-alknz-muted">
+                  If string contains Arabic Unicode range, enable RTL for that container:
+                </div>
+                <pre class="text-xs text-slate-200 mt-3"><code>/[\u0600-\u06FF]/</code></pre>
+              </div>
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">Rendering rule</div>
+                <div class="text-xs text-alknz-muted">
+                  Apply a CSS class:
+                </div>
+                <pre class="text-xs text-slate-200 mt-3"><code>.rtl { direction: rtl; font-family: 'Noto Sans Arabic'; }</code></pre>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">RTL demo</div>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                  <div class="text-xs font-bold text-white mb-2">English</div>
+                  <div class="text-sm text-slate-200">Al Rajhi Capital – Partner, Riyadh</div>
+                </div>
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4 rtl">
+                  <div class="text-xs font-bold text-white mb-2">عربي</div>
+                  <div class="text-sm text-slate-200">الراجحي المالية — شريك، الرياض</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Edge cases -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="edge">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-red-500/10 text-red-300 border border-red-500/20">Edge Cases</span>
+              <h2 class="text-xl font-bold">Common Arabic Edge Cases</h2>
+            </div>
+
+            <div class="mt-4 grid md:grid-cols-2 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">1) Mixed Arabic + English</div>
+                <div class="text-xs text-alknz-muted leading-relaxed">
+                  Some pages contain bilingual names. Keep both:
+                  <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>display_name_ar</li>
+                    <li>display_name_en</li>
+                    <li>matching keys for each</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">2) “Al” / “El” romanization drift</div>
+                <div class="text-xs text-alknz-muted leading-relaxed">
+                  Arabic ال may appear as Al / El / Al- / El-.
+                  Generate multiple romanized aliases for lookup.
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">3) Tribe/family tokens</div>
+                <div class="text-xs text-alknz-muted leading-relaxed">
+                  Tokens like آل / بن / بنت / أبو appear in names and should not be stripped.
+                  Only strip titles/honorifics.
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-2">4) Hamza & diacritics</div>
+                <div class="text-xs text-alknz-muted leading-relaxed">
+                  Removing diacritics improves matching. Normalize hamza forms for stable keys.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-red-900/10 border border-red-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              Never “guess” identity. Normalization only improves string matching and reduces duplicates.
+            </div>
+          </section>
+
+          <!-- CTA -->
+          <section class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-7">
+            <h2 class="text-xl font-bold">Next</h2>
+            <p class="text-sm text-alknz-muted mt-2">
+              Now that Arabic normalization is defined, connect it to Smart Map and Deep AI payloads.
+            </p>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+              <a href="./api.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
+                API Reference
+              </a>
+              <a href="./features.html" class="px-6 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all">
+                Feature Rules
+              </a>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Right sidebar -->
+        <aside class="lg:col-span-4">
+          <div class="glass-panel border border-alknz-border rounded-2xl p-6 sticky top-28">
+            <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold">Arabic Engine Nav</div>
+
+            <div class="mt-4 space-y-2 text-sm">
+              <a href="#why" class="block text-slate-300 hover:text-white">Why it exists</a>
+              <a href="#pipeline" class="block text-slate-300 hover:text-white">Where it runs</a>
+              <a href="#names" class="block text-slate-300 hover:text-white">Person names</a>
+              <a href="#orgs" class="block text-slate-300 hover:text-white">Organizations</a>
+              <a href="#matching" class="block text-slate-300 hover:text-white">Matching keys</a>
+              <a href="#rtl" class="block text-slate-300 hover:text-white">RTL UI</a>
+              <a href="#edge" class="block text-slate-300 hover:text-white">Edge cases</a>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-alknz-border">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Related</div>
+              <a href="./install.html" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-screwdriver-wrench"></i> Installation
+              </a>
+              <a href="./api.html" class="w-full mt-3 px-4 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plug"></i> API Reference
+              </a>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-black border-t border-alknz-border py-10">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+      <div class="text-xs text-slate-500">ALKNZ Intelligence – Arabic Engine Documentation</div>
+      <div class="text-xs text-slate-600">© 2026 ALKNZ Ventures</div>
+    </div>
+  </footer>
+
+</body>
+</html>

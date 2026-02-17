@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALKNZ Intelligence | Internal Documentation</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            alknz: {
+              bg: '#020408',
+              surface: '#0f172a',
+              border: '#1e293b',
+              primary: '#3b82f6',
+              muted: '#94a3b8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background:#020408; color:#f8fafc; font-family:Inter,sans-serif; }
+    .glass { background: rgba(15,23,42,.7); backdrop-filter: blur(12px); border:1px solid #1e293b; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    pre { background:#020408; border:1px solid #1e293b; border-radius:12px; padding:14px; overflow:auto; }
+    .nav-item.active { color:#60a5fa; border-bottom:2px solid #60a5fa; }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+<!-- NAV -->
+<nav class="fixed top-0 w-full z-50 glass border-b border-alknz-border">
+  <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+    <a href="./index.html" class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">A</div>
+      <div>
+        <div class="text-xl font-bold tracking-widest">ALKNZ</div>
+        <div class="text-[10px] tracking-[0.25em] text-alknz-muted uppercase">Docs</div>
+      </div>
+    </a>
+    <div class="hidden md:flex gap-8 text-xs uppercase tracking-widest text-alknz-muted font-bold">
+      <a href="./index.html" class="nav-item">Overview</a>
+      <a href="./features.html" class="nav-item">Features</a>
+      <a href="./install.html" class="nav-item">Install</a>
+      <a href="./api.html" class="nav-item">API</a>
+      <a href="./arabic.html" class="nav-item">Arabic</a>
+      <a href="./docs.html" class="nav-item active">Docs</a>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="pt-24 pb-24 max-w-7xl mx-auto px-6">
+
+<!-- HEADER -->
+<section class="mb-14">
+  <span class="inline-block text-[10px] uppercase tracking-[0.3em] text-blue-400 font-bold mb-3">
+    Internal Documentation
+  </span>
+  <h1 class="text-4xl font-bold mb-4">
+    Architecture, Data Flow & System Behavior
+  </h1>
+  <p class="text-alknz-muted max-w-3xl text-sm leading-relaxed">
+    This section documents how the ALKNZ Intelligence Chrome Extension works internally —
+    including client architecture, backend expectations, data lifecycle, and safety guarantees.
+    This is the canonical reference for engineers and operators.
+  </p>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="glass rounded-2xl p-8 mb-12" id="architecture">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+    <i class="fa-solid fa-diagram-project text-blue-400"></i>
+    System Architecture
+  </h2>
+
+  <p class="text-sm text-alknz-muted mb-6 leading-relaxed">
+    The system is intentionally split into a thin client (Chrome extension)
+    and a stateless backend API. All intelligence decisions that affect persistence
+    are validated server-side.
+  </p>
+
+  <pre class="text-xs text-slate-200"><code>
+[ Browser Tab ]
+      |
+      v
+[ Chrome Extension ]
+  - DOM Scraper
+  - Entity Detector
+  - UI State Manager
+      |
+      v
+[ Backend API ]
+  - Auth & Validation
+  - Smart Map Lookup
+  - Deep AI (optional)
+  - Merge Enforcement
+  - Persistence Layer
+      |
+      v
+[ ALKNZ Platform ]
+  - Profiles
+  - Investors
+  - Organizations
+</code></pre>
+
+  <ul class="mt-6 text-sm text-alknz-muted space-y-2 list-disc list-inside">
+    <li>Extension never writes directly to a database</li>
+    <li>Backend enforces merge rules regardless of client behavior</li>
+    <li>Client is safe to update without schema migration</li>
+  </ul>
+</section>
+
+<!-- EXTENSION INTERNALS -->
+<section class="glass rounded-2xl p-8 mb-12" id="extension">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+    <i class="fa-solid fa-puzzle-piece text-indigo-400"></i>
+    Chrome Extension Internals
+  </h2>
+
+  <p class="text-sm text-alknz-muted mb-6 leading-relaxed">
+    The extension operates as a controlled state machine. Each step
+    produces an explicit state transition that can be inspected or aborted.
+  </p>
+
+  <pre class="text-xs text-slate-200"><code>
+Idle
+ → Capture Page
+ → (Optional) Deep AI
+ → Merge Preview
+ → Upload
+ → Confirmation / Error
+</code></pre>
+
+  <div class="mt-6 grid md:grid-cols-2 gap-6 text-sm text-alknz-muted">
+    <div>
+      <strong class="text-white">Local-only state</strong>
+      <ul class="mt-2 space-y-1 list-disc list-inside">
+        <li>Captured DOM text</li>
+        <li>Temporary enrichment</li>
+        <li>UI flags (loading, errors)</li>
+      </ul>
+    </div>
+    <div>
+      <strong class="text-white">Server-dependent state</strong>
+      <ul class="mt-2 space-y-1 list-disc list-inside">
+        <li>Smart Map matches</li>
+        <li>Final merge decision</li>
+        <li>Record ID assignment</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- DATA LIFECYCLE -->
+<section class="glass rounded-2xl p-8 mb-12" id="data">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+    <i class="fa-solid fa-database text-green-400"></i>
+    Data Lifecycle & Safety
+  </h2>
+
+  <p class="text-sm text-alknz-muted mb-6 leading-relaxed">
+    The platform is designed to prevent accidental overwrites and duplication.
+    All mutation rules are enforced consistently.
+  </p>
+
+  <ul class="text-sm text-alknz-muted space-y-2 list-disc list-inside">
+    <li><code>setIfEmpty</code> is enforced both client- and server-side</li>
+    <li>Email/phone arrays are unioned, deduplicated, and capped</li>
+    <li>Source URLs are appended, never replaced</li>
+    <li>Every upload includes capture metadata</li>
+  </ul>
+
+  <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+    If the client sends conflicting data, the backend always wins.
+  </div>
+</section>
+
+<!-- BACKEND EXPECTATIONS -->
+<section class="glass rounded-2xl p-8 mb-12" id="backend">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+    <i class="fa-solid fa-server text-sky-400"></i>
+    Backend Expectations
+  </h2>
+
+  <ul class="text-sm text-alknz-muted space-y-2 list-disc list-inside">
+    <li>Stateless API design</li>
+    <li>Consistent error envelopes</li>
+    <li>Idempotent upload handling</li>
+    <li>Strict auth via <code>x-api-key</code></li>
+    <li>No silent merges</li>
+  </ul>
+
+  <pre class="mt-6 text-xs text-slate-200"><code>
+POST /api/v1/intelligence/upload
+→ validate
+→ normalize
+→ merge (setIfEmpty)
+→ persist
+→ respond with action + warnings
+</code></pre>
+</section>
+
+<!-- VERSIONING -->
+<section class="glass rounded-2xl p-8 mb-12" id="versioning">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+    <i class="fa-solid fa-code-branch text-purple-400"></i>
+    Versioning & Compatibility
+  </h2>
+
+  <ul class="text-sm text-alknz-muted space-y-2 list-disc list-inside">
+    <li>Extension sends <code>extension_version</code> with every upload</li>
+    <li>Backend may warn (not fail) on unknown fields</li>
+    <li>Backward compatibility preferred over breaking changes</li>
+  </ul>
+
+  <div class="mt-6 text-xs text-alknz-muted">
+    Recommended: bump minor versions for UI changes, major versions for schema changes.
+  </div>
+</section>
+
+<!-- OPERATING PRINCIPLES -->
+<section class="glass rounded-2xl p-8">
+  <h2 class="text-2xl font-bold mb-4 flex items-center gap-3">
+    <i class="fa-solid fa-compass text-yellow-300"></i>
+    Operating Principles
+  </h2>
+
+  <ul class="text-sm text-alknz-muted space-y-2 list-disc list-inside">
+    <li>Explicit is better than automatic</li>
+    <li>Data integrity > speed</li>
+    <li>Normalization ≠ identity guessing</li>
+    <li>Human review is always allowed</li>
+  </ul>
+
+  <div class="mt-6 flex gap-3">
+    <a href="./api.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl text-xs uppercase font-bold tracking-widest">
+      API Reference
+    </a>
+    <a href="./features.html" class="px-6 py-3 bg-alknz-surface border border-alknz-border rounded-xl text-xs uppercase font-bold tracking-widest">
+      Feature Rules
+    </a>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="border-t border-alknz-border py-8 text-center text-xs text-alknz-muted">
+  ALKNZ Intelligence — Internal Documentation • © 2026 ALKNZ Ventures
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALKNZ Intelligence | Installation</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            alknz: {
+              bg: '#020408',
+              surface: '#0f172a',
+              border: '#1e293b',
+              primary: '#3b82f6',
+              accent: '#6366f1',
+              text: '#f8fafc',
+              muted: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            arabic: ['Noto Sans Arabic', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background:#020408; color:#f8fafc; overflow-x:hidden; font-family:'Inter',sans-serif; }
+    .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
+    .gradient-text { background: linear-gradient(to right, #60a5fa, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .nav-item.active { color:#60a5fa; border-bottom:2px solid #60a5fa; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #020408; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+  <!-- Background -->
+  <canvas id="networkCanvas" class="fixed inset-0 z-0 pointer-events-none opacity-20"></canvas>
+
+  <!-- Nav -->
+  <nav class="fixed top-0 w-full z-50 glass-panel border-b border-alknz-border">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+      <a class="flex items-center gap-3 cursor-pointer" href="./index.html">
+        <!-- Replace with real logo later: ./assets/alknz-logo.svg -->
+        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <span class="text-white font-bold text-xl">A</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-bold tracking-widest text-white">ALKNZ</span>
+          <span class="text-[10px] text-alknz-muted tracking-[0.2em] uppercase">Extension Docs</span>
+        </div>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-alknz-muted">
+        <a href="./index.html" class="nav-item hover:text-white transition-colors py-2">Overview</a>
+        <a href="./features.html" class="nav-item hover:text-white transition-colors py-2">Features</a>
+        <a href="./install.html" class="nav-item hover:text-white transition-colors py-2 active">Installation</a>
+        <a href="./api.html" class="nav-item hover:text-white transition-colors py-2">API</a>
+        <a href="./arabic.html" class="nav-item hover:text-white transition-colors py-2">Arabic Engine</a>
+      </div>
+
+      <a href="./install.html"
+         class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-blue-600/20 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
+        <span>Install</span>
+        <i class="fa-brands fa-chrome text-[12px]"></i>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="relative z-10 flex-grow pt-24 pb-24 animate-fade-in">
+
+    <div class="max-w-7xl mx-auto px-6">
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-10">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-widest uppercase">
+            <i class="fa-solid fa-screwdriver-wrench"></i> Deployment Guide
+          </div>
+          <h1 class="text-4xl lg:text-5xl font-bold mt-4">
+            Install & Configure <span class="gradient-text">ALKNZ Intelligence</span>
+          </h1>
+          <p class="text-alknz-muted mt-3 max-w-2xl leading-relaxed">
+            This extension is deployed as a private internal build. You will install it using Chrome Developer Mode,
+            then connect it to the ALKNZ backend using a server URL + master API key.
+          </p>
+        </div>
+
+        <!-- Download -->
+        <div class="glass-panel border border-alknz-border rounded-2xl p-6 w-full lg:w-[420px]">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold">Download Package</div>
+              <div class="text-sm font-semibold text-white mt-1">alknz-extension-v8.0.0.zip</div>
+              <div class="text-xs text-alknz-muted mt-1">Load as “unpacked” after extracting</div>
+            </div>
+            <a href="./downloads/alknz-extension-v8.0.0.zip"
+               class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2">
+              <i class="fa-solid fa-download"></i> Download
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2-column layout -->
+      <div class="grid lg:grid-cols-12 gap-8">
+        <!-- Left: Steps -->
+        <div class="lg:col-span-8 space-y-6">
+
+          <!-- Step 1 -->
+          <div class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <div class="flex items-start justify-between gap-6">
+              <div>
+                <div class="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Step 1</div>
+                <h2 class="text-xl font-bold mt-2 flex items-center gap-3">
+                  <i class="fa-brands fa-chrome text-blue-400"></i> Enable Developer Mode
+                </h2>
+                <p class="text-sm text-alknz-muted mt-2 leading-relaxed">
+                  Open Chrome Extensions, then enable <b>Developer Mode</b>.
+                </p>
+              </div>
+            </div>
+            <div class="mt-5 bg-black/40 border border-alknz-border rounded-xl p-4 text-sm">
+              <div class="flex items-center justify-between gap-3">
+                <code id="chrome-ext-url" class="text-slate-200">chrome://extensions</code>
+                <button data-copy="chrome-ext-url" onclick="copyText('chrome-ext-url')"
+                        class="text-slate-400 hover:text-white transition">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+              </div>
+              <div class="text-xs text-alknz-muted mt-3">
+                Toggle <b>Developer mode</b> (top-right).
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <div class="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Step 2</div>
+            <h2 class="text-xl font-bold mt-2 flex items-center gap-3">
+              <i class="fa-solid fa-folder-open text-indigo-400"></i> Load Unpacked Extension
+            </h2>
+            <p class="text-sm text-alknz-muted mt-2 leading-relaxed">
+              Extract the ZIP file, then click <b>Load unpacked</b> and select the extracted folder.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-6">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <div class="text-xs font-bold text-white mb-2">✅ Correct</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Select the folder that contains <code>manifest.json</code></li>
+                  <li>Extension appears in the list immediately</li>
+                  <li>Pin it to the Chrome toolbar</li>
+                </ul>
+              </div>
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <div class="text-xs font-bold text-white mb-2">❌ Common mistake</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Selecting the ZIP without extracting</li>
+                  <li>Selecting the parent folder above <code>manifest.json</code></li>
+                  <li>Using Safari or non-Chrome browsers</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <div class="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Step 3</div>
+            <h2 class="text-xl font-bold mt-2 flex items-center gap-3">
+              <i class="fa-solid fa-gear text-green-400"></i> Configure Backend Connection
+            </h2>
+            <p class="text-sm text-alknz-muted mt-2 leading-relaxed">
+              Open the extension, go to Settings (gear icon), then paste:
+              <b>Backend Server URL</b> + <b>Master API Key</b>.
+            </p>
+
+            <!-- Config cards -->
+            <div class="space-y-4 mt-6">
+
+              <div class="glass-panel border border-alknz-border rounded-xl p-5 flex items-center justify-between gap-4">
+                <div class="flex-1">
+                  <div class="text-[10px] text-blue-500 font-bold uppercase block mb-1">Backend Server URL</div>
+                  <code class="text-xs text-slate-300 break-all" id="server-url">
+https://YOUR-SERVER-URL-HERE
+                  </code>
+                  <div class="text-[11px] text-alknz-muted mt-2">
+                    Must be reachable from your network. If this is Replit or a private host, ensure it’s online.
+                  </div>
+                </div>
+                <button data-copy="server-url" onclick="copyText('server-url')" class="text-slate-400 hover:text-white">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+              </div>
+
+              <div class="glass-panel border border-alknz-border rounded-xl p-5 flex items-center justify-between gap-4">
+                <div class="flex-1">
+                  <div class="text-[10px] text-blue-500 font-bold uppercase block mb-1">Master API Key</div>
+                  <code class="text-xs text-slate-300 break-all" id="master-key">
+REPLACE_WITH_MASTER_KEY
+                  </code>
+                  <div class="text-[11px] text-alknz-muted mt-2">
+                    Internal secret. Do not commit into GitHub. Store in a password manager.
+                  </div>
+                </div>
+                <button data-copy="master-key" onclick="copyText('master-key')" class="text-slate-400 hover:text-white">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+              </div>
+
+              <div class="bg-blue-900/10 border border-blue-500/20 rounded-xl p-5">
+                <div class="text-xs font-bold text-blue-300 flex items-center gap-2">
+                  <i class="fa-solid fa-circle-info"></i> Security Note
+                </div>
+                <p class="text-xs text-alknz-muted mt-2 leading-relaxed">
+                  If this documentation site will ever be hosted publicly, remove all keys and replace with placeholders.
+                  Keys should be provided to team members via secure channels only.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <div class="text-[10px] uppercase tracking-widest text-blue-400 font-bold">Step 4</div>
+            <h2 class="text-xl font-bold mt-2 flex items-center gap-3">
+              <i class="fa-solid fa-circle-check text-green-400"></i> Verify It’s Working
+            </h2>
+            <p class="text-sm text-alknz-muted mt-2 leading-relaxed">
+              Use these checks to confirm your extension is connected and ready.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4 mt-6">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-3">Checklist</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Extension icon visible in toolbar (pin if needed)</li>
+                  <li>Settings saved (URL + Key)</li>
+                  <li>Status shows <b>Connected</b> (or no auth error)</li>
+                  <li>Try a known investor page and click <b>Capture</b></li>
+                </ul>
+              </div>
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-white mb-3">What you should see</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>A detected entity name</li>
+                  <li>Scraped fields populated (if available)</li>
+                  <li>Deep AI enrichment (if enabled)</li>
+                  <li>Upload confirmation / success state</li>
+                </ul>
+                <div class="text-xs text-alknz-muted mt-3">
+                  Next: see <a class="text-blue-400 hover:text-blue-300" href="./features.html">Features</a> for behavior rules.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Troubleshooting -->
+          <div class="glass-panel border border-alknz-border rounded-2xl p-7">
+            <h2 class="text-xl font-bold flex items-center gap-3">
+              <i class="fa-solid fa-triangle-exclamation text-yellow-300"></i> Troubleshooting
+            </h2>
+            <p class="text-sm text-alknz-muted mt-2 leading-relaxed">
+              If something doesn’t work, it’s usually one of these:
+            </p>
+
+            <div class="mt-6 space-y-4">
+              <details class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <summary class="cursor-pointer text-sm font-semibold text-white">“Load unpacked” is greyed out</summary>
+                <div class="text-xs text-alknz-muted mt-3 leading-relaxed">
+                  Make sure you enabled <b>Developer mode</b> at the top right of <code>chrome://extensions</code>.
+                </div>
+              </details>
+
+              <details class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <summary class="cursor-pointer text-sm font-semibold text-white">Extension loads but doesn’t capture anything</summary>
+                <div class="text-xs text-alknz-muted mt-3 leading-relaxed">
+                  Most common causes:
+                  <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>You’re on a page type the scraper doesn’t support yet</li>
+                    <li>Permissions were denied (refresh the page after installing)</li>
+                    <li>Backend URL is wrong/offline</li>
+                  </ul>
+                </div>
+              </details>
+
+              <details class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <summary class="cursor-pointer text-sm font-semibold text-white">401 / Unauthorized</summary>
+                <div class="text-xs text-alknz-muted mt-3 leading-relaxed">
+                  Your Master API Key is missing, incorrect, or the backend is validating a different key.
+                  Re-enter the key in Settings and retry.
+                </div>
+              </details>
+
+              <details class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <summary class="cursor-pointer text-sm font-semibold text-white">CORS / Network error</summary>
+                <div class="text-xs text-alknz-muted mt-3 leading-relaxed">
+                  This usually means the backend is not allowing requests from the extension origin.
+                  Confirm the backend is configured for the extension’s requests and that the server is reachable.
+                </div>
+              </details>
+
+              <details class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                <summary class="cursor-pointer text-sm font-semibold text-white">Extension updated — now things look “stuck”</summary>
+                <div class="text-xs text-alknz-muted mt-3 leading-relaxed">
+                  Go to <code>chrome://extensions</code> → click the refresh icon on the extension card.
+                  Then refresh your browser tab.
+                </div>
+              </details>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right: Quick Nav / Summary -->
+        <aside class="lg:col-span-4 space-y-6">
+          <div class="glass-panel border border-alknz-border rounded-2xl p-6 sticky top-28">
+            <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold">On this page</div>
+            <div class="mt-4 space-y-2 text-sm">
+              <a href="#download" class="block text-slate-300 hover:text-white">Download</a>
+              <a href="#devmode" class="block text-slate-300 hover:text-white">Developer Mode</a>
+              <a href="#load" class="block text-slate-300 hover:text-white">Load Unpacked</a>
+              <a href="#config" class="block text-slate-300 hover:text-white">Configure Keys</a>
+              <a href="#verify" class="block text-slate-300 hover:text-white">Verify</a>
+              <a href="#troubleshoot" class="block text-slate-300 hover:text-white">Troubleshoot</a>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-alknz-border">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Next</div>
+              <a href="./api.html" class="w-full px-4 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plug"></i> API Reference
+              </a>
+              <a href="./features.html" class="w-full mt-3 px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> Feature Behavior
+              </a>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-black border-t border-alknz-border py-10 relative z-10">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-[10px]">A</div>
+        <span class="text-sm font-bold tracking-widest text-white uppercase">ALKNZ</span>
+      </div>
+      <div class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">© 2026 ALKNZ Ventures | Internal</div>
+    </div>
+  </footer>
+
+  <script>
+    // Copy helper
+    function copyText(id) {
+      const text = document.getElementById(id).innerText.trim();
+      navigator.clipboard.writeText(text);
+    }
+
+    // Network Animation
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, particles = [];
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      particles = Array.from({length: 60}, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4
+      }));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 0 || p.x > width) p.vx *= -1;
+        if(p.y < 0 || p.y > height) p.vy *= -1;
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI*2); ctx.fill();
+
+        for(let j=i+1; j<particles.length; j++) {
+          let d = Math.hypot(p.x - particles[j].x, p.y - particles[j].y);
+          if(d < 150) {
+            ctx.strokeStyle = `rgba(59, 130, 246, ${0.15 * (1 - d/150)})`;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+          }
+        }
+      });
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize(); draw();
+  </script>
+</body>
+</html>

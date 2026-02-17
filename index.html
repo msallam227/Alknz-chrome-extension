@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALKNZ Intelligence | Extension Docs</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            alknz: {
+              bg: '#020408',
+              surface: '#0f172a',
+              border: '#1e293b',
+              primary: '#3b82f6',
+              accent: '#6366f1',
+              text: '#f8fafc',
+              muted: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            arabic: ['Noto Sans Arabic', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background:#020408; color:#f8fafc; overflow-x:hidden; font-family:'Inter',sans-serif; }
+    .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
+    .gradient-text { background: linear-gradient(to right, #60a5fa, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .nav-item.active { color:#60a5fa; border-bottom:2px solid #60a5fa; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #020408; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .perspective-1000 { perspective: 1000px; }
+    .rotate-y-2:hover { transform: rotateY(5deg) scale(1.02); }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+  <!-- Background Animation -->
+  <canvas id="networkCanvas" class="fixed inset-0 z-0 pointer-events-none opacity-20"></canvas>
+
+  <!-- Navigation -->
+  <nav class="fixed top-0 w-full z-50 glass-panel border-b border-alknz-border">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+      <a class="flex items-center gap-3 cursor-pointer" href="./index.html">
+        <!-- Replace this with your real logo file: ./assets/alknz-logo.svg -->
+        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <span class="text-white font-bold text-xl">A</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-bold tracking-widest text-white">ALKNZ</span>
+          <span class="text-[10px] text-alknz-muted tracking-[0.2em] uppercase">Extension Docs</span>
+        </div>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-alknz-muted">
+        <a href="./index.html" class="nav-item hover:text-white transition-colors py-2 active">Overview</a>
+        <a href="./features.html" class="nav-item hover:text-white transition-colors py-2">Features</a>
+        <a href="./install.html" class="nav-item hover:text-white transition-colors py-2">Installation</a>
+        <a href="./api.html" class="nav-item hover:text-white transition-colors py-2">API</a>
+        <a href="./arabic.html" class="nav-item hover:text-white transition-colors py-2">Arabic Engine</a>
+      </div>
+
+      <a href="./install.html"
+         class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-blue-600/20 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
+        <span>Install</span>
+        <i class="fa-brands fa-chrome text-[12px]"></i>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="relative z-10 flex-grow pt-20">
+
+    <!-- HERO -->
+    <section class="min-h-[85vh] flex items-center relative animate-fade-in">
+      <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+        <div class="space-y-8">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold tracking-widest uppercase">
+            <i class="fa-solid fa-lock"></i>
+            Internal Documentation Portal
+          </div>
+
+          <h1 class="text-5xl lg:text-7xl font-bold leading-tight">
+            ALKNZ Intelligence<br/>
+            <span class="gradient-text">Chrome Extension</span>
+          </h1>
+
+          <p class="text-lg text-alknz-muted leading-relaxed max-w-xl">
+            Capture investor intelligence from the web, normalize the data, enrich via Deep AI, and sync into the ALKNZ platform.
+            This site explains <b>how to install</b>, <b>how to use</b>, and <b>what the backend APIs return</b>.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4">
+            <a href="./install.html"
+               class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-sm uppercase tracking-wide flex items-center justify-center gap-3 transition-all shadow-2xl shadow-blue-600/30">
+              <i class="fa-brands fa-chrome text-lg"></i> Install & Configure
+            </a>
+
+            <a href="./features.html"
+               class="px-8 py-4 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-sm uppercase tracking-wide border border-alknz-border flex items-center justify-center gap-3 transition-all">
+              <i class="fa-solid fa-layer-group text-lg"></i> View Features
+            </a>
+          </div>
+
+          <!-- Quick links row -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <a href="./api.html" class="glass-panel border border-alknz-border rounded-xl p-4 hover:bg-slate-900/40 transition">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-1">Developers</div>
+              <div class="text-sm font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-plug text-blue-400"></i> API Reference
+              </div>
+              <div class="text-xs text-alknz-muted mt-1">Auth, keys, endpoints, outputs</div>
+            </a>
+
+            <a href="./install.html" class="glass-panel border border-alknz-border rounded-xl p-4 hover:bg-slate-900/40 transition">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-1">Operators</div>
+              <div class="text-sm font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-screwdriver-wrench text-indigo-400"></i> Setup Guide
+              </div>
+              <div class="text-xs text-alknz-muted mt-1">Load unpacked, connect server</div>
+            </a>
+
+            <a href="./arabic.html" class="glass-panel border border-alknz-border rounded-xl p-4 hover:bg-slate-900/40 transition">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-1">MENA</div>
+              <div class="text-sm font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-language text-green-400"></i> Arabic Engine
+              </div>
+              <div class="text-xs text-alknz-muted mt-1">Arabic names, honorifics, RTL</div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: mock / summary -->
+        <div class="relative group perspective-1000 hidden lg:block">
+          <div class="absolute inset-0 bg-blue-600/20 blur-[100px] rounded-full group-hover:bg-blue-600/30 transition-all duration-700"></div>
+
+          <div class="relative bg-alknz-surface border border-alknz-border rounded-2xl shadow-2xl overflow-hidden transform transition-transform duration-500 rotate-y-2">
+            <div class="bg-slate-900 px-4 py-3 flex items-center border-b border-alknz-border">
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500/40"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/40"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/40"></div>
+              </div>
+              <div class="bg-black/50 rounded-md px-4 py-1 text-[10px] text-slate-500 font-mono flex-1 mx-4 text-center">
+                alknz-intelligence • internal build
+              </div>
+            </div>
+
+            <div class="p-8">
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-xs">A</div>
+                  <span class="text-sm font-bold tracking-widest uppercase">ALKNZ</span>
+                </div>
+                <span class="px-2 py-1 bg-green-500/10 text-green-400 text-[9px] font-bold uppercase rounded border border-green-500/20">Connected</span>
+              </div>
+
+              <div class="bg-blue-500/5 border border-blue-500/20 rounded-lg p-5 mb-6 relative">
+                <div class="absolute top-0 left-0 h-full w-1 bg-blue-500"></div>
+                <div class="text-[10px] font-bold text-blue-400 uppercase tracking-wider mb-1">Capture Flow</div>
+                <div class="text-sm text-white font-medium">Web page → Scrape → Deep AI → Merge → Upload</div>
+                <div class="text-xs text-slate-400 mt-1">Never overwrites existing data unless empty (setIfEmpty)</div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-alknz-bg border border-alknz-border rounded-lg text-[10px] font-bold text-slate-400">
+                  <i class="fa-solid fa-camera mr-2 text-blue-500"></i> Capture
+                </div>
+                <div class="p-4 bg-alknz-bg border border-alknz-border rounded-lg text-[10px] font-bold text-slate-400">
+                  <i class="fa-solid fa-brain mr-2 text-indigo-500"></i> Deep AI
+                </div>
+                <div class="p-4 bg-alknz-bg border border-alknz-border rounded-lg text-[10px] font-bold text-slate-400">
+                  <i class="fa-solid fa-network-wired mr-2 text-green-500"></i> Smart Map
+                </div>
+                <div class="p-4 bg-alknz-bg border border-alknz-border rounded-lg text-[10px] font-bold text-slate-400">
+                  <i class="fa-solid fa-cloud-arrow-up mr-2 text-sky-500"></i> Upload
+                </div>
+              </div>
+
+              <div class="mt-6 text-xs text-alknz-muted leading-relaxed">
+                This documentation site is the single source of truth for:
+                <b>installation</b>, <b>configuration</b>, <b>API keys</b>, and <b>data outputs</b>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- What this documentation covers -->
+    <section class="py-16 border-t border-alknz-border/60">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-12">
+          <span class="text-blue-500 font-bold text-xs uppercase tracking-[0.3em] block mb-3">Documentation Scope</span>
+          <h2 class="text-3xl font-bold text-white">Everything a user needs to run the extension</h2>
+          <p class="text-alknz-muted mt-3 max-w-2xl mx-auto">
+            Designed for internal users. Clear steps, clear outputs, minimal fluff.
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <div class="glass-panel p-7 rounded-2xl border border-alknz-border">
+            <div class="flex items-center gap-3 mb-4">
+              <i class="fa-solid fa-download text-blue-500 text-2xl"></i>
+              <h3 class="text-lg font-bold">Download & Install</h3>
+            </div>
+            <p class="text-alknz-muted text-sm leading-relaxed">
+              Where to get the extension ZIP, how to load unpacked, and how to verify it’s running.
+            </p>
+            <a href="./install.html" class="inline-flex items-center gap-2 mt-5 text-xs font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300">
+              Go to Installation <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="glass-panel p-7 rounded-2xl border border-alknz-border">
+            <div class="flex items-center gap-3 mb-4">
+              <i class="fa-solid fa-wand-magic-sparkles text-indigo-400 text-2xl"></i>
+              <h3 class="text-lg font-bold">Feature Behavior</h3>
+            </div>
+            <p class="text-alknz-muted text-sm leading-relaxed">
+              What “Capture”, “Deep AI”, and “Merge into form” mean—plus what does and doesn’t get overwritten.
+            </p>
+            <a href="./features.html" class="inline-flex items-center gap-2 mt-5 text-xs font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300">
+              Go to Features <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+          <div class="glass-panel p-7 rounded-2xl border border-alknz-border">
+            <div class="flex items-center gap-3 mb-4">
+              <i class="fa-solid fa-key text-green-400 text-2xl"></i>
+              <h3 class="text-lg font-bold">API Keys & Outputs</h3>
+            </div>
+            <p class="text-alknz-muted text-sm leading-relaxed">
+              Exact endpoints, payload formats, returned fields, error shapes, and expected configuration.
+            </p>
+            <a href="./api.html" class="inline-flex items-center gap-2 mt-5 text-xs font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300">
+              Go to API <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-16">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div>
+            <div class="text-blue-400 font-bold text-xs uppercase tracking-[0.3em] mb-2">Start Here</div>
+            <div class="text-2xl font-bold text-white">Install the extension and connect to the backend</div>
+            <div class="text-sm text-alknz-muted mt-2">Takes ~2 minutes if you have the server URL + API key.</div>
+          </div>
+          <div class="flex gap-3">
+            <a href="./install.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
+              Installation Guide
+            </a>
+            <a href="./arabic.html" class="px-6 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all">
+              Arabic Engine
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-black border-t border-alknz-border py-10 relative z-10">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-[10px]">A</div>
+        <span class="text-sm font-bold tracking-widest text-white uppercase">ALKNZ</span>
+      </div>
+      <div class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">© 2026 ALKNZ Ventures | Internal</div>
+    </div>
+  </footer>
+
+  <script>
+    // --- Network Animation ---
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, particles = [];
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      particles = Array.from({length: 60}, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4
+      }));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 0 || p.x > width) p.vx *= -1;
+        if(p.y < 0 || p.y > height) p.vy *= -1;
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI*2); ctx.fill();
+
+        for(let j=i+1; j<particles.length; j++) {
+          let d = Math.hypot(p.x - particles[j].x, p.y - particles[j].y);
+          if(d < 150) {
+            ctx.strokeStyle = `rgba(59, 130, 246, ${0.15 * (1 - d/150)})`;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+          }
+        }
+      });
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize(); draw();
+  </script>
+</body>
+</html>
