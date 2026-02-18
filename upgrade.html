@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALKNZ Intelligence | Upgrade v8 → v11.1</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            alknz: {
+              bg: '#020408',
+              surface: '#0f172a',
+              border: '#1e293b',
+              primary: '#3b82f6',
+              accent: '#6366f1',
+              text: '#f8fafc',
+              muted: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            arabic: ['Noto Sans Arabic', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { background:#020408; color:#f8fafc; overflow-x:hidden; font-family:'Inter',sans-serif; }
+    .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(59, 130, 246, 0.1); }
+    .gradient-text { background: linear-gradient(to right, #60a5fa, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .nav-item.active { color:#60a5fa; border-bottom:2px solid #60a5fa; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #020408; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .chip { font-size: 10px; letter-spacing: .25em; text-transform: uppercase; font-weight: 800; padding: 6px 10px; border-radius: 999px; }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen flex flex-col">
+
+  <!-- Background -->
+  <canvas id="networkCanvas" class="fixed inset-0 z-0 pointer-events-none opacity-20"></canvas>
+
+  <!-- Nav -->
+  <nav class="fixed top-0 w-full z-50 glass-panel border-b border-alknz-border">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+      <a class="flex items-center gap-3 cursor-pointer" href="./index.html">
+        <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+          <span class="text-white font-bold text-xl">A</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xl font-bold tracking-widest text-white">ALKNZ</span>
+          <span class="text-[10px] text-alknz-muted tracking-[0.2em] uppercase">Extension Docs</span>
+        </div>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-widest text-alknz-muted">
+        <a href="./index.html" class="nav-item hover:text-white transition-colors py-2">Overview</a>
+        <a href="./features.html" class="nav-item hover:text-white transition-colors py-2">Features</a>
+        <a href="./install.html" class="nav-item hover:text-white transition-colors py-2">Installation</a>
+        <a href="./api.html" class="nav-item hover:text-white transition-colors py-2">API</a>
+        <a href="./arabic.html" class="nav-item hover:text-white transition-colors py-2">Arabic Engine</a>
+        <a href="./upgrade.html" class="nav-item hover:text-white transition-colors py-2 active">Upgrade</a>
+      </div>
+
+      <a href="./install.html"
+         class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-blue-600/20 text-xs font-bold uppercase tracking-wide flex items-center gap-2">
+        <span>Install</span>
+        <i class="fa-brands fa-chrome text-[12px]"></i>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="relative z-10 flex-grow pt-24 pb-24 animate-fade-in">
+    <div class="max-w-7xl mx-auto px-6">
+
+      <!-- Header -->
+      <div class="mb-14">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold tracking-widest uppercase">
+          <i class="fa-solid fa-arrow-up-right-dots"></i> Major Release
+        </div>
+        <h1 class="text-4xl lg:text-6xl font-bold mt-4">
+          What's New in <span class="gradient-text">v11.1</span>
+        </h1>
+        <p class="text-alknz-muted mt-4 max-w-3xl leading-relaxed">
+          Version 11.1 is a complete architecture overhaul of the ALKNZ Intelligence Chrome Extension.
+          From per-user authentication and smart capture modes to AI-powered recommendations and team conflict detection,
+          this release transforms the extension from a single-user scraper into a collaborative research platform.
+        </p>
+
+        <!-- Version badge -->
+        <div class="flex items-center gap-4 mt-6">
+          <div class="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-alknz-border rounded-full">
+            <span class="text-xs text-alknz-muted font-bold">v8.0.0</span>
+            <i class="fa-solid fa-arrow-right text-alknz-muted text-[10px]"></i>
+            <span class="text-xs text-green-400 font-bold">v11.1</span>
+          </div>
+          <a href="./install.html"
+             class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2">
+            <i class="fa-solid fa-download text-[10px]"></i> Download v11.1
+          </a>
+        </div>
+      </div>
+
+      <!-- 2-col layout -->
+      <div class="grid lg:grid-cols-12 gap-8">
+
+        <!-- Left content -->
+        <div class="lg:col-span-8 space-y-8">
+
+          <!-- At a Glance -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="glance">
+            <div class="flex items-center gap-3 mb-5">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">At a Glance</span>
+              <h2 class="text-xl font-bold">v8 vs v11.1 Comparison</h2>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm border border-alknz-border rounded-xl overflow-hidden">
+                <thead class="bg-slate-900/60 text-xs uppercase tracking-widest text-alknz-muted">
+                  <tr>
+                    <th class="p-3">Capability</th>
+                    <th class="p-3 text-center">v8.0</th>
+                    <th class="p-3 text-center">v11.1</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-200 text-xs">
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Authentication</td>
+                    <td class="p-3 text-center"><span class="text-yellow-400">Shared API key</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Per-user login</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Capture modes</td>
+                    <td class="p-3 text-center"><span class="text-yellow-400">Person only</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Person + Company + Bulk</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Page detection</td>
+                    <td class="p-3 text-center"><span class="text-yellow-400">Basic meta tags</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">3-layer: JSON-LD + LinkedIn DOM + meta</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Enrichment UI</td>
+                    <td class="p-3 text-center"><span class="text-yellow-400">Separate Deep AI tab</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Inline panel with Apply/Dismiss</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Team bulk capture</td>
+                    <td class="p-3 text-center"><span class="text-red-400">Not available</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Checkbox list + queue</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Conflict detection</td>
+                    <td class="p-3 text-center"><span class="text-red-400">Not available</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Pre-upload warning</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Recommendations</td>
+                    <td class="p-3 text-center"><span class="text-red-400">Not available</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Post-upload suggestions</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Tabs</td>
+                    <td class="p-3 text-center"><span class="text-yellow-400">4 tabs (incl. Deep AI)</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">3 tabs: Research | Batch | Saved</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Form layout</td>
+                    <td class="p-3 text-center"><span class="text-yellow-400">Flat, all fields visible</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Progressive collapsible sections</span></td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3 text-alknz-muted">Company data</td>
+                    <td class="p-3 text-center"><span class="text-red-400">Not supported</span></td>
+                    <td class="p-3 text-center"><span class="text-green-400">Dedicated company form + upload</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Feature 1: Auth -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="auth">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">New</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-user-shield text-green-400 mr-2"></i> Per-User Authentication</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              v8 used a single shared API key with a manually typed "Captured By" field. v11.1 introduces real platform authentication
+              so every team member logs in with their own credentials and all captures are attributed individually.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-red-400 mb-3 flex items-center gap-2">
+                  <i class="fa-solid fa-xmark"></i> v8.0 (Old)
+                </div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Shared master API key for all users</li>
+                  <li>Manual "Captured By" text input</li>
+                  <li>No identity verification</li>
+                  <li>No per-user tracking on backend</li>
+                </ul>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-green-400 mb-3 flex items-center gap-2">
+                  <i class="fa-solid fa-check"></i> v11.1 (New)
+                </div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Email + password login in Options page</li>
+                  <li><code>POST /api/auth/login</code> returns Bearer token</li>
+                  <li>Token stored securely in <code>chrome.storage.sync</code></li>
+                  <li>All API calls include <code>Authorization: Bearer</code></li>
+                  <li>Captured-by auto-set from authenticated session</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Feature 2: Capture Modes -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="modes">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">New</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-layer-group text-blue-400 mr-2"></i> Smart Capture Modes</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              The extension now auto-detects the type of page you're viewing and switches to the appropriate capture mode.
+              You can also toggle modes manually via the mode banner at the top of the Research tab.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5 text-center">
+                <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <i class="fa-solid fa-user text-blue-400 text-xl"></i>
+                </div>
+                <div class="text-sm font-bold text-white mb-1">Person Mode</div>
+                <div class="text-xs text-alknz-muted">
+                  Capture individual investor profiles with contact info, enrichment, and investment focus fields.
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5 text-center">
+                <div class="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <i class="fa-solid fa-building text-indigo-400 text-xl"></i>
+                </div>
+                <div class="text-sm font-bold text-white mb-1">Company Mode</div>
+                <div class="text-xs text-alknz-muted">
+                  Capture firm profiles with org type, HQ location, investment sectors, stages, and check size range.
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5 text-center">
+                <div class="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <i class="fa-solid fa-users text-green-400 text-xl"></i>
+                </div>
+                <div class="text-sm font-bold text-white mb-1">Bulk / Team Mode</div>
+                <div class="text-xs text-alknz-muted">
+                  Select multiple team members from a company page and enrich them sequentially in a batch queue.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              <b>Auto-detection:</b> The content script identifies the page type (person_profile, company_profile, team_page)
+              using a 3-layer extraction strategy: JSON-LD structured data, LinkedIn-specific DOM selectors, and generic meta tags.
+            </div>
+          </section>
+
+          <!-- Feature 3: Inline Enrichment -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="enrichment">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Redesigned</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-brain text-indigo-400 mr-2"></i> Inline Enrichment Panel</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              In v8, AI enrichment lived in a separate "Deep AI" tab. In v11.1, enrichment is embedded directly
+              in the Person capture form as a collapsible section. Results appear as individual field rows
+              with <b>Apply</b> and <b>Dismiss</b> buttons for full user control.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-red-400 mb-3 flex items-center gap-2">
+                  <i class="fa-solid fa-xmark"></i> v8.0 Enrichment
+                </div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Separate "Deep AI" tab</li>
+                  <li>Terminal-style output (raw text)</li>
+                  <li>Bulk merge button (all or nothing)</li>
+                  <li>No per-field control</li>
+                </ul>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-green-400 mb-3 flex items-center gap-2">
+                  <i class="fa-solid fa-check"></i> v11.1 Enrichment
+                </div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Inline panel inside capture form</li>
+                  <li>Clean card UI with structured field rows</li>
+                  <li>Per-field Apply / Dismiss buttons</li>
+                  <li>Confidence indicators</li>
+                  <li>Enrichment status bar with progress</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Feature 4: Conflict Detection -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="conflict">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-yellow-500/10 text-yellow-300 border border-yellow-500/20">New</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-triangle-exclamation text-yellow-400 mr-2"></i> Team Conflict Detection</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              When two team members capture the same contact, v11.1 shows a warning before upload.
+              This prevents duplicate outreach and gives the admin platform-side visibility.
+            </p>
+
+            <div class="bg-alknz-bg border border-yellow-500/20 rounded-xl p-5 mt-4">
+              <div class="flex items-start gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-yellow-400 mt-0.5"></i>
+                <div>
+                  <div class="text-sm font-bold text-white">Example Warning</div>
+                  <div class="text-xs text-alknz-muted mt-2">
+                    "Khaled already captured this person (Jan 15). Uploading will add your version."
+                  </div>
+                  <div class="text-xs text-alknz-muted mt-2">
+                    Upload still proceeds — no blocking. The admin dashboard flags contacts with 2+ team members
+                    for CEO review.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              Powered by <code>GET /api/v1/people/lookup</code> — the extension checks for existing records before every upload.
+            </div>
+          </section>
+
+          <!-- Feature 5: Recommendations -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="recommendations">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">New</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-lightbulb text-amber-400 mr-2"></i> Post-Upload Recommendations</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              After a successful upload, the extension now suggests similar investors to research next
+              and provides approach suggestions for the captured profile.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-amber-300 mb-3 flex items-center gap-2">
+                  <i class="fa-solid fa-compass"></i> Research Next
+                </div>
+                <div class="text-xs text-alknz-muted leading-relaxed">
+                  After uploading, a "Research Next" card appears with 3-5 similar profiles based on matching investment sectors, stages, and geography. Each suggestion links directly to the investor's LinkedIn profile.
+                </div>
+                <div class="mt-4 text-[10px] text-alknz-muted">
+                  Scoring: Sectors (0.4) + Stage (0.3) + Geography (0.2) + Firm type (0.1)
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold text-sky-300 mb-3 flex items-center gap-2">
+                  <i class="fa-solid fa-route"></i> Suggested Approach
+                </div>
+                <div class="text-xs text-alknz-muted leading-relaxed">
+                  A "Next Steps" card provides tactical outreach advice: intro path (warm vs. cold),
+                  key talking points based on shared sectors, portfolio reference points, and suggested timing.
+                </div>
+                <div class="mt-4 text-[10px] text-alknz-muted">
+                  Rule-based engine. No ML required for initial release.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Feature 6: Company Mode -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="company">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-green-500/10 text-green-300 border border-green-500/20">New</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-building text-indigo-400 mr-2"></i> Company Capture Mode</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              v8 only captured person profiles. v11.1 adds a dedicated company form with its own fields and upload endpoint.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-4">
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-3">Company Fields</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Organization name & type</li>
+                  <li>Website & LinkedIn URL</li>
+                  <li>Up to 5 emails, 3 phone numbers</li>
+                  <li>HQ city & country</li>
+                  <li>Description & notes</li>
+                </ul>
+              </div>
+              <div class="bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-3">Investment Profile</div>
+                <ul class="text-xs text-alknz-muted space-y-2 list-disc list-inside">
+                  <li>Investment sectors</li>
+                  <li>Investment stages</li>
+                  <li>Check size range (min / max)</li>
+                  <li>Geographic focus</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mt-6 bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              Company upload: <code>POST /api/v1/companies</code> (fallback: <code>/api/organizations</code>)
+            </div>
+          </section>
+
+          <!-- Feature 7: Tabs & UI -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="ui">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">Redesigned</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-table-columns text-blue-400 mr-2"></i> Tab Reorganization & Progressive UI</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              The extension UI has been streamlined from 4 tabs down to 3. The Deep AI tab has been removed
+              and its functionality moved inline. Forms now use progressive disclosure with collapsible sections.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="bg-alknz-bg border border-blue-500/20 rounded-xl p-5 text-center">
+                <div class="text-sm font-bold text-blue-400 mb-2">Research</div>
+                <div class="text-xs text-alknz-muted">
+                  Main capture form with mode banner, progressive fields, inline enrichment, and upload.
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-indigo-500/20 rounded-xl p-5 text-center">
+                <div class="text-sm font-bold text-indigo-400 mb-2">Batch</div>
+                <div class="text-xs text-alknz-muted">
+                  Scraper results with expand/collapse rows. Smart URL pre-fill from detected company pages.
+                </div>
+              </div>
+
+              <div class="bg-alknz-bg border border-green-500/20 rounded-xl p-5 text-center">
+                <div class="text-sm font-bold text-green-400 mb-2">Saved</div>
+                <div class="text-xs text-alknz-muted">
+                  Drafts, address book, and search history combined in one unified view.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div class="text-xs font-bold uppercase tracking-widest text-alknz-muted mb-3">Progressive Form Sections</div>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                  <div class="text-xs text-alknz-muted">
+                    <b>Contact & Relationship</b> — collapsible, starts collapsed. Reduces visual noise
+                    when you only need to capture basic info.
+                  </div>
+                </div>
+                <div class="bg-alknz-bg border border-alknz-border rounded-xl p-4">
+                  <div class="text-xs text-alknz-muted">
+                    <b>Investment Focus</b> — collapsible, starts collapsed. Expand only when capturing
+                    investment-specific data like sectors, stages, and geo focus.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Feature 8: Content Script -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="extraction">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">Upgraded</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-code text-sky-400 mr-2"></i> 3-Layer Data Extraction</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              The content script has been rewritten with a smarter, more reliable extraction pipeline.
+            </p>
+
+            <div class="space-y-4">
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span class="text-blue-400 font-bold text-sm">1</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">JSON-LD Structured Data</div>
+                  <div class="text-xs text-alknz-muted mt-1">Highest priority. Extracts rich schema.org data embedded in the page.</div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-indigo-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span class="text-indigo-400 font-bold text-sm">2</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">LinkedIn DOM Selectors</div>
+                  <div class="text-xs text-alknz-muted mt-1">Platform-specific selectors for LinkedIn profile and company pages.</div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span class="text-green-400 font-bold text-sm">3</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Generic Meta Tags</div>
+                  <div class="text-xs text-alknz-muted mt-1">Fallback. Reads OpenGraph, Twitter cards, and standard meta description.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- API Changes -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="api">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-blue-500/10 text-blue-300 border border-blue-500/20">Updated</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-plug text-blue-400 mr-2"></i> New & Updated API Endpoints</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              v11.1 introduces new endpoints and uses primary + fallback patterns for backward compatibility.
+            </p>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm border border-alknz-border rounded-xl overflow-hidden">
+                <thead class="bg-slate-900/60 text-xs uppercase tracking-widest text-alknz-muted">
+                  <tr>
+                    <th class="p-3">Endpoint</th>
+                    <th class="p-3">Fallback</th>
+                    <th class="p-3">Purpose</th>
+                  </tr>
+                </thead>
+                <tbody class="text-slate-200 text-xs">
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>POST /api/auth/login</code></td>
+                    <td class="p-3 text-alknz-muted">—</td>
+                    <td class="p-3 text-alknz-muted">User authentication</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>GET /api/auth/me</code></td>
+                    <td class="p-3 text-alknz-muted">—</td>
+                    <td class="p-3 text-alknz-muted">Token validation</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>POST /api/v1/people</code></td>
+                    <td class="p-3"><code>/api/capture</code></td>
+                    <td class="p-3 text-alknz-muted">Person upload</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>POST /api/v1/companies</code></td>
+                    <td class="p-3"><code>/api/organizations</code></td>
+                    <td class="p-3 text-alknz-muted">Company upload</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>POST /api/v1/enrichment</code></td>
+                    <td class="p-3"><code>/api/deep-search</code></td>
+                    <td class="p-3 text-alknz-muted">AI enrichment</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>POST /api/v1/extract</code></td>
+                    <td class="p-3"><code>/api/extract</code></td>
+                    <td class="p-3 text-alknz-muted">AI text extraction</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>POST /api/v1/scrape</code></td>
+                    <td class="p-3"><code>/api/batch-scrape</code></td>
+                    <td class="p-3 text-alknz-muted">Batch scraping</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>GET /api/v1/people/lookup</code></td>
+                    <td class="p-3 text-alknz-muted">—</td>
+                    <td class="p-3 text-alknz-muted">Conflict check + dedup</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>GET /api/v1/people/{id}/recommendations</code></td>
+                    <td class="p-3 text-alknz-muted">—</td>
+                    <td class="p-3 text-alknz-muted">Similar investor suggestions</td>
+                  </tr>
+                  <tr class="border-t border-alknz-border">
+                    <td class="p-3"><code>GET /api/v1/people/{id}/next-steps</code></td>
+                    <td class="p-3 text-alknz-muted">—</td>
+                    <td class="p-3 text-alknz-muted">Approach suggestions</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-6 bg-blue-900/10 border border-blue-500/20 rounded-xl p-4 text-xs text-alknz-muted">
+              All new v1 endpoints try the primary route first. If it returns 404, the extension automatically retries on the fallback route for backward compatibility with older backends.
+            </div>
+          </section>
+
+          <!-- Upgrade Steps -->
+          <section class="glass-panel border border-alknz-border rounded-2xl p-7" id="upgrade-steps">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="chip bg-sky-500/10 text-sky-300 border border-sky-500/20">How To</span>
+              <h2 class="text-xl font-bold"><i class="fa-solid fa-arrow-up-from-bracket text-sky-400 mr-2"></i> How to Upgrade</h2>
+            </div>
+
+            <p class="text-sm text-alknz-muted leading-relaxed mb-6">
+              Upgrading from v8 to v11.1 takes about 2 minutes. Your settings (server URL, API key) are preserved.
+            </p>
+
+            <div class="space-y-4">
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-sky-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span class="text-sky-400 font-bold text-sm">1</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Download v11.1</div>
+                  <div class="text-xs text-alknz-muted mt-1">
+                    Get the latest ZIP from the <a href="./install.html" class="text-blue-400 hover:text-blue-300">Installation page</a>.
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-sky-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span class="text-sky-400 font-bold text-sm">2</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Remove the old extension</div>
+                  <div class="text-xs text-alknz-muted mt-1">
+                    Go to <code>chrome://extensions</code>, find ALKNZ Intelligence v8, and click <b>Remove</b>.
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-sky-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span class="text-sky-400 font-bold text-sm">3</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Extract and load unpacked</div>
+                  <div class="text-xs text-alknz-muted mt-1">
+                    Extract the v11.1 ZIP, then click <b>Load unpacked</b> and select the folder containing <code>manifest.json</code>.
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-sky-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span class="text-sky-400 font-bold text-sm">4</span>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">Log in with your platform account</div>
+                  <div class="text-xs text-alknz-muted mt-1">
+                    Open Options, enter your email and password, and click <b>Log In</b>.
+                    Your server URL and API key should still be set from v8.
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4 bg-alknz-bg border border-alknz-border rounded-xl p-5">
+                <div class="w-8 h-8 bg-green-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <i class="fa-solid fa-check text-green-400 text-sm"></i>
+                </div>
+                <div>
+                  <div class="text-sm font-bold text-white">You're done</div>
+                  <div class="text-xs text-alknz-muted mt-1">
+                    Open any LinkedIn profile and the extension should auto-detect the page type and switch to the right mode.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CTA -->
+          <section class="bg-blue-900/10 border border-blue-500/20 rounded-2xl p-8">
+            <h3 class="text-xl font-bold mb-3">Ready to Upgrade?</h3>
+            <p class="text-sm text-alknz-muted leading-relaxed">
+              Download v11.1 and start using the new capture modes, inline enrichment, and team features today.
+            </p>
+            <div class="mt-6 flex flex-col sm:flex-row gap-4">
+              <a href="./install.html" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center gap-2">
+                <i class="fa-solid fa-download"></i> Download & Install
+              </a>
+              <a href="./features.html" class="px-6 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> Feature Behavior
+              </a>
+              <a href="./api.html" class="px-6 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center gap-2">
+                <i class="fa-solid fa-plug"></i> API Reference
+              </a>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- Right sidebar -->
+        <aside class="lg:col-span-4">
+          <div class="glass-panel border border-alknz-border rounded-2xl p-6 sticky top-28">
+            <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold">On This Page</div>
+
+            <div class="mt-4 space-y-2 text-sm">
+              <a href="#glance" class="block text-slate-300 hover:text-white">v8 vs v11.1 Comparison</a>
+              <a href="#auth" class="block text-slate-300 hover:text-white">Per-User Authentication</a>
+              <a href="#modes" class="block text-slate-300 hover:text-white">Smart Capture Modes</a>
+              <a href="#enrichment" class="block text-slate-300 hover:text-white">Inline Enrichment</a>
+              <a href="#conflict" class="block text-slate-300 hover:text-white">Conflict Detection</a>
+              <a href="#recommendations" class="block text-slate-300 hover:text-white">Recommendations</a>
+              <a href="#company" class="block text-slate-300 hover:text-white">Company Mode</a>
+              <a href="#ui" class="block text-slate-300 hover:text-white">Tab Reorganization</a>
+              <a href="#extraction" class="block text-slate-300 hover:text-white">3-Layer Extraction</a>
+              <a href="#api" class="block text-slate-300 hover:text-white">API Changes</a>
+              <a href="#upgrade-steps" class="block text-slate-300 hover:text-white">How to Upgrade</a>
+            </div>
+
+            <div class="mt-6 pt-6 border-t border-alknz-border">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-3">Version</div>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="px-3 py-1.5 bg-slate-800/50 border border-alknz-border rounded-lg text-xs text-alknz-muted">v8.0.0</div>
+                <i class="fa-solid fa-arrow-right text-alknz-muted text-[10px]"></i>
+                <div class="px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs text-green-400 font-bold">v11.1</div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-alknz-border">
+              <div class="text-[10px] uppercase tracking-widest text-alknz-muted font-bold mb-2">Quick Links</div>
+              <a href="./install.html" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-download"></i> Get v11.1
+              </a>
+              <a href="./features.html" class="w-full mt-3 px-4 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-layer-group"></i> Features
+              </a>
+              <a href="./api.html" class="w-full mt-3 px-4 py-3 bg-alknz-surface hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest border border-alknz-border transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plug"></i> API Reference
+              </a>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-black border-t border-alknz-border py-10 relative z-10">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 bg-blue-600 rounded flex items-center justify-center text-white font-bold text-[10px]">A</div>
+        <span class="text-sm font-bold tracking-widest text-white uppercase">ALKNZ</span>
+      </div>
+      <div class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">&copy; 2026 ALKNZ Ventures | Internal</div>
+    </div>
+  </footer>
+
+  <script>
+    // Network Animation
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height, particles = [];
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      particles = Array.from({length: 60}, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4
+      }));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if(p.x < 0 || p.x > width) p.vx *= -1;
+        if(p.y < 0 || p.y > height) p.vy *= -1;
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI*2); ctx.fill();
+
+        for(let j=i+1; j<particles.length; j++) {
+          let d = Math.hypot(p.x - particles[j].x, p.y - particles[j].y);
+          if(d < 150) {
+            ctx.strokeStyle = `rgba(59, 130, 246, ${0.15 * (1 - d/150)})`;
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(particles[j].x, particles[j].y); ctx.stroke();
+          }
+        }
+      });
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener('resize', resize);
+    resize(); draw();
+  </script>
+</body>
+</html>
